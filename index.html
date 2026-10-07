@@ -116,6 +116,14 @@ h1{margin:2px 0 0;font-size:30px;letter-spacing:-.8px;line-height:1.1}
 .leg{margin:2px 0 0 14px;padding:2px 0 2px 24px;border-left:2px dotted var(--line);font-size:12px;color:var(--sub)}
 :root[data-saver]{--bg:#000;--card:#0b0b0b;--ink:#e8e8e8;--sub:#8a8a8a;--line:#222;--soft:#1a0f0a}
 :root[data-saver] *{transition:none!important;animation:none!important}
+.ticket{text-align:center;padding:20px 4px}
+.ticket .tt{font-size:64px;font-weight:800;letter-spacing:-2px;margin-top:8px}
+.ticket .tn{font-size:24px;font-weight:700}
+.ticket .tnote{font-size:28px;font-weight:700;margin-top:18px;background:var(--card);border:2px dashed var(--line);border-radius:16px;padding:16px;word-break:break-all}
+.stopi.move .chk{border-color:var(--accent)}
+.wrapi{border-top:1px solid var(--line);padding:10px 0}
+.wrapi .btns{display:flex;gap:6px;margin-top:6px}
+.wrapi .btns button{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 0;font-size:13px;background:var(--card)}
 .pbtn.danger{background:none;color:#d14343;border:1px solid var(--line)}
 </style>
 </head>
@@ -248,7 +256,16 @@ function entryHTML(e){
 }
 var SAVER=ls.get("saver",false); if(SAVER) document.documentElement.dataset.saver="1";
 S.open=null;
-const plansOf = d => S.entries.filter(e=>e.date===d&&e.type==="plan").sort((a,b)=>(a.time||"99").localeCompare(b.time||"99")||(a.at||0)-(b.at||0));
+const plansOf = d => S.entries.filter(e=>e.date===d&&e.type==="plan"&&!e.dropped).sort((a,b)=>(a.time||"99").localeCompare(b.time||"99")||(a.at||0)-(b.at||0));
+const isMove = p => /기차|열차|렌페|이탈로|트렌|TGV|비행|항공|공항|✈|버스터미널|플릭스|페리|체크인|출발/i.test(p.text||"");
+function ticket(id){
+  const p=S.entries.find(e=>e.id===id); if(!p) return;
+  $("#pane").innerHTML=`<div class="ticket"><div class="sub">${P(p.date).getMonth()+1}월 ${P(p.date).getDate()}일 · ${esc(cityOf(p.date)?.[2]||"")}</div>
+  <div class="tt">${esc(p.time||"")}</div><div class="tn">${esc(p.text)}</div>
+  ${p.note?`<div class="tnote">${esc(p.note)}</div>`:`<div class="sub">수정에서 예약번호·좌석·플랫폼을 메모에 넣으면 여기 크게 나와요</div>`}</div>
+  <button class="pbtn ghostbtn" data-act="close">닫기</button>`;
+  $("#sheet").classList.add("show");
+}
 function courseHTML(plans,c){
   const tip = c&&CONFIG.safety[c[2]];
   const done=plans.filter(p=>p.done).length;
@@ -256,8 +273,8 @@ function courseHTML(plans,c){
   <div class="tools">${plans.length&&sample?`<button data-act="study">✨ 미리 공부</button>`:""}${plans.length&&downloads?`<button data-act="lock">🔒 잠금화면</button>`:""}</div></div>
   ${tip?`<div class="safety">⚠️ ${esc(tip)}</div>`:""}
   ${plans.length?plans.map((p,i)=>{ const f=p.info||{}, open=S.open===p.id;
-    return `${i&&f.route?`<div class="leg">🚶 ${esc(f.route)}</div>`:""}<div class="stopi ${p.done?"done":""}"><div class="line"><button class="chk" data-done="${p.id}" aria-label="다녀옴">${p.done?"✓":""}</button><span class="tm">${esc(p.time||"")}</span><button class="ttl" data-open="${p.id}">${esc(p.text)} <span class="sub">${open?"▲":"▼"}</span></button></div>
-    ${open?`<div class="info">${i===0&&f.route?`<div>🚶 <b>가는 길</b> ${esc(f.route)}</div>`:""}${f.story?`<div>📖 ${esc(f.story)}</div>`:""}${f.see?`<div>👀 <b>꼭 볼 것</b> ${esc(f.see)}</div>`:""}${f.tip?`<div>💡 ${esc(f.tip)}</div>`:""}${p.note?`<div>📝 ${esc(p.note)}</div>`:""}${!f.story&&!p.note?`<div class="sub">${sample?"✨ 미리 공부를 누르면 배경지식과 가는 길이 채워져요":"수정에서 메모를 남길 수 있어요"}</div>`:""}<div class="acts"><button data-cap="${p.id}">수정</button><button data-del="${p.id}">삭제</button></div></div>`:""}</div>`; }).join("")
+    return `${i&&f.route?`<div class="leg">🚶 ${esc(f.route)}</div>`:""}<div class="stopi ${p.done?"done":""} ${isMove(p)?"move":""}"><div class="line"><button class="chk" data-done="${p.id}" aria-label="다녀옴">${p.done?"✓":""}</button><span class="tm">${esc(p.time||"")}</span><button class="ttl" data-open="${p.id}">${isMove(p)?"🎫 ":""}${esc(p.text)} <span class="sub">${open?"▲":"▼"}</span></button></div>
+    ${open?`<div class="info">${i===0&&f.route?`<div>🚶 <b>가는 길</b> ${esc(f.route)}</div>`:""}${f.story?`<div>📖 ${esc(f.story)}</div>`:""}${f.see?`<div>👀 <b>꼭 볼 것</b> ${esc(f.see)}</div>`:""}${f.tip?`<div>💡 ${esc(f.tip)}</div>`:""}${f.planB?`<div>☔ <b>플랜 B</b> ${esc(f.planB)}</div>`:""}${isMove(p)?`<button class="pbtn ghostbtn" data-ticket="${p.id}" style="margin-top:0">🎫 티켓 크게 보기</button>`:""}${p.note?`<div>📝 ${esc(p.note)}</div>`:""}${!f.story&&!p.note?`<div class="sub">${sample?"✨ 미리 공부를 누르면 배경지식과 가는 길이 채워져요":"수정에서 메모를 남길 수 있어요"}</div>`:""}<div class="acts"><button data-cap="${p.id}">수정</button><button data-del="${p.id}">삭제</button></div></div>`:""}</div>`; }).join("")
   :`<div class="empty" style="padding:14px 4px">아래 칸에 <b style="display:inline;font-size:15px">14:00 렐루서점</b>처럼 적으면<br>여기에 체크리스트로 쌓여요. 여러 줄 한 번에도 돼요.</div>`}</div>`;
 }
 async function study(){
@@ -271,10 +288,11 @@ ${plans.map((p,i)=>`${i+1}. id=${p.id} ${p.time||""} ${p.text}`).join("\n")}
 - story: 알고 보면 더 재밌는 배경 이야기 2문장
 - see: 꼭 볼 것 1~2개
 - tip: 실용 팁 1문장(휴관·예약·줄·소매치기 등)
+- planB: 비 오거나 닫았을 때 근처 실내 대안 1곳과 이유 한 줄
 - route: 이전 장소에서 가는 법(첫 장소는 시내 중심에서). 도보 몇 분 또는 교통수단·노선·내릴 곳을 한 줄로, 랜드마크 기준으로
-JSON 배열로만 답해: [{"id":"...","story":"...","see":"...","tip":"...","route":"..."}]`,{modelTier:"default"});
+JSON 배열로만 답해: [{"id":"...","story":"...","see":"...","tip":"...","planB":"...","route":"..."}]`,{modelTier:"default"});
     const arr=Array.isArray(res)?res:(res?.items||res?.places||[]);
-    for(const it of arr){ const p=plans.find(x=>x.id===it.id); if(p) await updEntry(p.id,{info:{story:it.story||"",see:it.see||"",tip:it.tip||"",route:it.route||""}}); }
+    for(const it of arr){ const p=plans.find(x=>x.id===it.id); if(p) await updEntry(p.id,{info:{story:it.story||"",see:it.see||"",tip:it.tip||"",planB:it.planB||"",route:it.route||""}}); }
     S.open=plans[0].id; render(); toast("다 읽어두면 폰 넣어도 돼요 📚");
   }catch(e){ if(e?.code!=="cancelled") toast("공부 실패: "+(e?.code||"오류")); }
 }
@@ -299,7 +317,7 @@ function render(){
   const list=S.entries.filter(e=>e.date===d).sort((a,b)=>(a.time||"99").localeCompare(b.time||"99")||(a.at||0)-(b.at||0));
   const spent=list.filter(e=>e.type==="spend").reduce((s,e)=>s+krw(e),0);
   const photos=list.filter(e=>e.type==="photo").length;
-  const plans=list.filter(e=>e.type==="plan"), done=plans.filter(p=>p.done).length;
+  const plans=plansOf(d), done=plans.filter(p=>p.done).length;
   const no=dayNo(d), inTrip=no>=1&&no<=TOTAL_DAYS;
   const nth = c ? dayNo(d)-dayNo(c[0])+1 : 0;
   $("#app").innerHTML=`
@@ -362,7 +380,18 @@ function book(){
   $("#sheet").classList.add("show"); $("#pane").scrollTop=0;
 }
 
-async function wrapUp(){
+function triage(){
+  const left=plansOf(S.date).filter(p=>!p.done);
+  if(!left.length) return false;
+  $("#pane").innerHTML=`<h2>🌙 하루 정리</h2><div class="sub">못 간 곳을 정리하고 넘어가요</div>
+  ${left.map(p=>`<div class="wrapi"><b>${esc(p.time||"")} ${esc(p.text)}</b><div class="btns">
+    <button data-tri="done:${p.id}">✓ 다녀옴</button><button data-tri="next:${p.id}">→ 내일로</button><button data-tri="drop:${p.id}">✕ 안 감</button></div></div>`).join("")}
+  <button class="pbtn" data-act="wrapGo">${left.length?"나머지는 그대로 두고 ":""}일기 쓰기</button>`;
+  $("#sheet").classList.add("show"); return true;
+}
+async function wrapUp(skipTriage){
+  if(!skipTriage&&triage()) return;
+  $("#sheet").classList.remove("show");
   const d=S.date, list=S.entries.filter(e=>e.date===d);
   if(!sample){
     $("#pane").innerHTML=`<h2>오늘의 한 장</h2><div class="sub">오늘을 한두 문장으로 남겨요</div><textarea id="ediary" class="field" rows="4">${esc(S.days[d]?.diary||"")}</textarea><button class="pbtn" data-act="saveDiary">저장</button>`;
@@ -383,7 +412,8 @@ function editSheet(id){
   $("#pane").innerHTML=`<h2>${x.type==="photo"?"사진 설명":"기록 수정"}</h2>
   <textarea id="etext" class="field" rows="2" placeholder="내용">${esc(x.text||"")}</textarea>
   <input id="etime" class="field" type="time" value="${esc(x.time||"")}">
-  ${x.type==="plan"?`<input id="enote" class="field" placeholder="메모 (예약번호, 입장 시간 등)" value="${esc(x.note||"")}">`:""}
+  ${x.type==="plan"?`<input id="enote" class="field" placeholder="메모 (예약번호, 좌석, 플랫폼, 입장 시간 등)" value="${esc(x.note||"")}">
+  <input id="eplanb" class="field" placeholder="☔ 플랜 B (비 오면 갈 곳)" value="${esc(x.info?.planB||"")}">`:""}
   ${x.type==="spend"?`<div class="grid2"><input id="eamt" class="field" type="number" inputmode="decimal" step="0.01" value="${x.amount}">${sel("ecur",["EUR","CHF","KRW"],x.cur)}${sel("ecat",Object.keys(CAT_ICON),x.cat)}${sel("epay",["카드","현금"],x.pay)}</div>
   <div class="grid2"><select id="eby" class="field">${people().map(i=>`<option value="${esc(i)}" ${i===(x.by||S.me||"me")?"selected":""}>${esc(nameOf(i))} 결제</option>`).join("")}</select>
   <select id="eshared" class="field"><option value="1" ${x.shared!==false?"selected":""}>함께 쓴 돈</option><option value="0" ${x.shared===false?"selected":""}>개인 지출</option></select></div>`:""}
@@ -433,7 +463,7 @@ document.addEventListener("click",safe(async e=>{
   if(ds.done){ const x=S.entries.find(e=>e.id===ds.done); await updEntry(ds.done,{done:!x.done}); return; }
   if(ds.del){ await removeEntry(ds.del); return; }
   if(ds.cap){ editSheet(ds.cap); return; }
-  if(ds.act==="saveEdit"){ const id=ds.id, x=S.entries.find(e=>e.id===id), patch={text:$("#etext").value.trim(),time:$("#etime").value}; if($("#enote")) patch.note=$("#enote").value.trim();
+  if(ds.act==="saveEdit"){ const id=ds.id, x=S.entries.find(e=>e.id===id), patch={text:$("#etext").value.trim(),time:$("#etime").value}; if($("#enote")){ patch.note=$("#enote").value.trim(); patch.info={...(x.info||{}),planB:$("#eplanb").value.trim()}; }
     if(x.type==="spend"){ const a=parseFloat($("#eamt").value); if(!(a>0)) return toast("금액을 확인해주세요"); patch.amount=a; patch.cur=$("#ecur").value; patch.cat=$("#ecat").value; patch.pay=$("#epay").value; patch.by=$("#eby").value; patch.shared=$("#eshared").value==="1"; }
     await updEntry(id,patch); $("#sheet").classList.remove("show"); toast("수정했어요"); return; }
   if(ds.act==="delEdit"){ $("#sheet").classList.remove("show"); await removeEntry(ds.id); return; }
@@ -452,6 +482,13 @@ document.addEventListener("click",safe(async e=>{
     try{ await downloads.save({filename:"여행경비.csv",data:new Blob([csv],{type:"text/csv"})}); }catch(e){ if(e?.code!=="cancelled"&&e?.code!=="declined") toast("저장 못 했어요"); } }
   if(ds.act==="close") $("#sheet").classList.remove("show");
   if(ds.act==="wrap") await wrapUp();
+  if(ds.act==="wrapGo") await wrapUp(true);
+  if(ds.ticket){ ticket(ds.ticket); return; }
+  if(ds.tri){ const [k,id]=ds.tri.split(":");
+    if(k==="done") await updEntry(id,{done:true});
+    if(k==="next") await updEntry(id,{date:add(S.date,1)});
+    if(k==="drop") await updEntry(id,{dropped:true});
+    if(!triage()) await wrapUp(true); return; }
 }));
 $("#sheet").addEventListener("click",e=>{ if(e.target.id==="sheet") $("#sheet").classList.remove("show"); });
 
