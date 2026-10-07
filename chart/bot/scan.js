@@ -54,15 +54,20 @@ const emo = score => score >= 15 ? '🟢' : score <= -15 ? '🔴' : '⚪';
 // 채팅 ID가 없으면 봇에게 마지막으로 메시지를 보낸 사람을 자동으로 찾아 저장
 async function chatId() {
   if (process.env.TELEGRAM_CHAT_ID) return process.env.TELEGRAM_CHAT_ID;
-  const r = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/getUpdates`).then(r => r.json());
+  const T = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN.trim()}`;
+  const me = await fetch(`${T}/getMe`).then(r => r.json());
+  if (!me.ok) throw new Error(`토큰이 올바르지 않습니다 (${me.description}). BotFather에서 토큰을 다시 복사해 등록하세요.`);
+  console.log(`봇 확인: @${me.result.username}`);
+  const r = await fetch(`${T}/getUpdates`).then(r => r.json());
+  console.log(`받은 메시지 ${r.result?.length ?? 0}개`, r.ok ? '' : r.description);
   const found = (r.result || []).map(u => (u.message || u.my_chat_member || u.channel_post)?.chat?.id).filter(Boolean).pop();
   if (found) state._chatId = found;
-  if (!state._chatId) throw new Error('채팅 ID를 찾지 못했습니다. 텔레그램에서 봇에게 아무 메시지나 보낸 뒤 다시 실행하세요.');
+  if (!state._chatId) throw new Error(`채팅 ID를 찾지 못했습니다. 텔레그램에서 @${me.result.username} 에게 메시지를 보낸 뒤 다시 실행하세요.`);
   return state._chatId;
 }
 async function send(text) {
   if (process.env.DRY_RUN || !process.env.TELEGRAM_BOT_TOKEN) { console.log('--- 텔레그램 (미전송) ---\n' + text + '\n'); return; }
-  const r = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  const r = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN.trim()}/sendMessage`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: await chatId(), text, parse_mode: 'HTML', disable_web_page_preview: true }),
   });
