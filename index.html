@@ -79,7 +79,12 @@ h1{margin:2px 0 0;font-size:30px;letter-spacing:-.8px;line-height:1.1}
 .big{font-size:32px;font-weight:800;letter-spacing:-1px}
 .sub{color:var(--sub);font-size:13px}
 .toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;z-index:30}
-.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.field{width:100%;margin-top:10px;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 12px;font-size:16px;outline:none}
+.field:focus{border-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+.pbtn{width:100%;margin-top:12px;padding:13px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700}
+.pbtn.danger{background:none;color:#d14343;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -133,9 +138,9 @@ const krw = e => (e.amount||0)*(CONFIG.rates[e.cur]||1);
 const money = e => e.cur==="KRW"?won(e.amount):`${(+e.amount).toLocaleString("ko-KR")}${e.cur==="EUR"?"€":" CHF"}`;
 const nowHM = () => new Date().toTimeString().slice(0,5);
 const ls = {get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1700);}
+function toast(m){const t=$("#toast");t.textContent=m;S&&(S.undo=null);t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1700);}
 
-const S = { date: TODAY>=FIRST&&TODAY<=LAST?TODAY:FIRST, entries:[], days:{}, force:null };
+var S = { undo:null, date: TODAY>=FIRST&&TODAY<=LAST?TODAY:FIRST, entries:[], days:{}, force:null };
 
 /* ---------- 저장: claude.ai db 우선, 없으면 이 기기 ---------- */
 let db=null, assets=null, sample=null;
@@ -150,12 +155,12 @@ const safe = fn => async(...a)=>{ try{ await fn(...a); }catch(e){ toast("저장 
 function guess(line, date){
   line=line.trim(); if(!line) return null;
   const tm = line.match(/^(\d{1,2})[:시](\d{2})?\s*분?\s+(.+)/);
-  const mm = line.match(/(\d+(?:[.,]\d+)?)\s*(유로|eur|€|프랑|chf|만원|원|krw)?/i);
+  const mm = line.match(/(\d+(?:[.,]\d+)*)\s*(유로|eur|€|프랑|chf|만원|원|krw)?/i);
   let cat=null; for(const [k,w] of Object.entries(CATS)) if(w.some(x=>line.includes(x))){cat=k;break;}
   const out = { date, text: line };
   if(tm){ return {...out,type:"plan",time:`${tm[1].padStart(2,"0")}:${tm[2]||"00"}`,text:tm[3],done:false}; }
   if(mm && (mm[2] || cat || /카드|현금/.test(line))){
-    let amount=parseFloat(mm[1].replace(",",".")), u=(mm[2]||"").toLowerCase(), cur=cityOf(date)?.[3]||"EUR";
+    let amount=parseFloat(/,\d{3}$/.test(mm[1])?mm[1].replace(",",""):mm[1].replace(",",".")), u=(mm[2]||"").toLowerCase(), cur=cityOf(date)?.[3]||"EUR";
     if(/유로|eur|€/.test(u)) cur="EUR"; else if(/프랑|chf/.test(u)) cur="CHF"; else if(u==="만원"){cur="KRW";amount*=1e4;} else if(/원|krw/.test(u)) cur="KRW";
     const text=line.replace(mm[0],"").replace(/카드|현금/g,"").replace(/\s+/g," ").trim();
     return {...out,type:"spend",amount,cur,cat:cat||"기타",pay:/현금/.test(line)?"현금":"카드",text:text||cat||"지출",time:nowHM()};
@@ -217,7 +222,7 @@ function render(){
   ${day.diary?`<div class="diary">${esc(day.diary)}<small>오늘의 한 장</small></div>`:""}
   <div class="timeline">${list.length?list.map(entryHTML).join(""):`<div class="empty"><b>아직 비어있는 하루</b>아래 칸에 아무거나 적어보세요.<br>금액이 있으면 지출, 시간으로 시작하면 일정,<br>나머지는 메모로 알아서 들어가요.</div>`}</div>
   <div class="toolbar"><button data-act="stats">📊 여행 전체 보기</button>${list.length?`<button data-act="wrap">${sample?"✨ ":""}하루 마무리</button>`:""}</div>`;
-  const on=document.querySelector(".stop.on"); if(on) on.scrollIntoView({inline:"center",block:"nearest"});
+  const on=document.querySelector(".stop.on"), rt=$("#route"); if(on) rt.scrollLeft=on.offsetLeft-rt.clientWidth/2+on.clientWidth/2;
 }
 
 function stats(){
@@ -237,7 +242,8 @@ function stats(){
 async function wrapUp(){
   const d=S.date, list=S.entries.filter(e=>e.date===d);
   if(!sample){
-    const t=prompt("오늘을 한 문장으로 남긴다면?", S.days[d]?.diary||""); if(t!==null) await setDay(d,{diary:t.trim()}); return;
+    $("#pane").innerHTML=`<h2>오늘의 한 장</h2><div class="sub">오늘을 한두 문장으로 남겨요</div><textarea id="ediary" class="field" rows="4">${esc(S.days[d]?.diary||"")}</textarea><button class="pbtn" data-act="saveDiary">저장</button>`;
+    $("#sheet").classList.add("show"); $("#ediary").focus(); return;
   }
   toast("오늘을 정리하는 중…");
   const lines=list.map(e=>e.type==="spend"?`[지출] ${e.text} ${money(e)}`:e.type==="plan"?`[${e.done?"다녀옴":"못 감"}] ${e.time} ${e.text}`:e.type==="photo"?`[사진] ${e.text||""}`:`[메모] ${e.text}`).join("\n");
@@ -246,6 +252,26 @@ async function wrapUp(){
     const r=await sample(`여행 중 하루의 기록이야. 도시: ${cityOf(d)?.[2]||""}, 날짜: ${d}, 기분: ${mood!=null?MOODS[mood]:"모름"}.\n${lines}\n\n이걸 바탕으로 친구에게 말하듯 담백한 한국어 일기 3문장을 써줘. 금액 나열은 하지 말고, 기억에 남을 장면 위주로. 일기 본문만 출력.`,{modelTier:"quick"});
     await setDay(d,{diary:r.text.trim()}); toast("오늘의 한 장 완성");
   }catch(e){ if(e?.code!=="cancelled") toast("정리 실패: "+(e?.code||"오류")); }
+}
+
+function editSheet(id){
+  const x=S.entries.find(e=>e.id===id); if(!x) return;
+  const sel=(id,opts,v)=>`<select id="${id}" class="field">${opts.map(o=>`<option ${o===v?"selected":""}>${o}</option>`).join("")}</select>`;
+  $("#pane").innerHTML=`<h2>${x.type==="photo"?"사진 설명":"기록 수정"}</h2>
+  <textarea id="etext" class="field" rows="2" placeholder="내용">${esc(x.text||"")}</textarea>
+  <input id="etime" class="field" type="time" value="${esc(x.time||"")}">
+  ${x.type==="spend"?`<div class="grid2"><input id="eamt" class="field" type="number" inputmode="decimal" step="0.01" value="${x.amount}">${sel("ecur",["EUR","CHF","KRW"],x.cur)}${sel("ecat",Object.keys(CAT_ICON),x.cat)}${sel("epay",["카드","현금"],x.pay)}</div>`:""}
+  <button class="pbtn" data-act="saveEdit" data-id="${id}">저장</button>
+  <button class="pbtn danger" data-act="delEdit" data-id="${id}">삭제</button>`;
+  $("#sheet").classList.add("show");
+}
+async function removeEntry(id){
+  const x=S.entries.find(e=>e.id===id); if(!x) return;
+  await delEntry(id);
+  if(x.type==="photo"&&assets&&x.assetId){ S.undo=null; try{ await assets.delete(x.assetId); }catch{} toast("사진을 지웠어요"); return; }
+  S.undo={...x};
+  const t=$("#toast"); t.innerHTML=`지웠어요 <button data-act="undo" style="color:inherit;text-decoration:underline;margin-left:8px">되돌리기</button>`;
+  t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>{t.classList.remove("show");S.undo=null;},4000);
 }
 
 /* ---------- 이벤트 ---------- */
@@ -266,9 +292,9 @@ $("#file").addEventListener("change",safe(async e=>{
   for(const f of files){ const r=await assets.upload(f); await addEntry({date:S.date,type:"photo",assetId:r.id,url:r.url,text:cap,time:nowHM()}); }
   toast("사진 저장");
 }));
-let sx=null;
-$("#app").addEventListener("touchstart",e=>{ if(!e.target.closest(".route")) sx=e.touches[0].clientX; },{passive:true});
-$("#app").addEventListener("touchend",e=>{ if(sx==null) return; const dx=e.changedTouches[0].clientX-sx; sx=null; if(Math.abs(dx)>70) go(add(S.date,dx<0?1:-1)); });
+let sx=null, sy=0;
+$("#app").addEventListener("touchstart",e=>{ if(!e.target.closest(".route")) { sx=e.touches[0].clientX; sy=e.touches[0].clientY; } },{passive:true});
+$("#app").addEventListener("touchend",e=>{ if(sx==null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null; if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy)) go(add(S.date,dx<0?1:-1)); });
 document.addEventListener("click",safe(async e=>{
   const t=e.target.closest("button,[data-date]"); if(!t) return;
   if(e.target===$("#sheet")) return $("#sheet").classList.remove("show");
@@ -278,8 +304,14 @@ document.addEventListener("click",safe(async e=>{
   if(ds.step){ go(add(S.date,+ds.step)); return; }
   if(ds.mood){ const m=+ds.mood; await setDay(S.date,{mood:S.days[S.date]?.mood===m?null:m}); return; }
   if(ds.done){ const x=S.entries.find(e=>e.id===ds.done); await updEntry(ds.done,{done:!x.done}); return; }
-  if(ds.del){ if(confirm("지울까요?")) await delEntry(ds.del); return; }
-  if(ds.cap){ const x=S.entries.find(e=>e.id===ds.cap); const v=prompt("내용 수정",x.text||""); if(v!==null) await updEntry(ds.cap,{text:v.trim()}); return; }
+  if(ds.del){ await removeEntry(ds.del); return; }
+  if(ds.cap){ editSheet(ds.cap); return; }
+  if(ds.act==="saveEdit"){ const id=ds.id, x=S.entries.find(e=>e.id===id), patch={text:$("#etext").value.trim(),time:$("#etime").value};
+    if(x.type==="spend"){ const a=parseFloat($("#eamt").value); if(!(a>0)) return toast("금액을 확인해주세요"); patch.amount=a; patch.cur=$("#ecur").value; patch.cat=$("#ecat").value; patch.pay=$("#epay").value; }
+    await updEntry(id,patch); $("#sheet").classList.remove("show"); toast("수정했어요"); return; }
+  if(ds.act==="delEdit"){ $("#sheet").classList.remove("show"); await removeEntry(ds.id); return; }
+  if(ds.act==="undo"){ const u=S.undo; S.undo=null; $("#toast").classList.remove("show"); if(u){ delete u.id; await addEntry(u); } return; }
+  if(ds.act==="saveDiary"){ await setDay(S.date,{diary:$("#ediary").value.trim()}); $("#sheet").classList.remove("show"); return; }
   if(ds.act==="stats") stats();
   if(ds.act==="close") $("#sheet").classList.remove("show");
   if(ds.act==="wrap") await wrapUp();
