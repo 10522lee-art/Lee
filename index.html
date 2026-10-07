@@ -124,6 +124,14 @@ h1{margin:2px 0 0;font-size:30px;letter-spacing:-.8px;line-height:1.1}
 .wrapi{border-top:1px solid var(--line);padding:10px 0}
 .wrapi .btns{display:flex;gap:6px;margin-top:6px}
 .wrapi .btns button{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 0;font-size:13px;background:var(--card)}
+.now{background:var(--ink);color:var(--bg);border-radius:24px;padding:18px;margin-top:14px}
+.now .k{font-size:12px;letter-spacing:1px;opacity:.7;font-weight:700}
+.now .t{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:4px 0 2px;line-height:1.2}
+.now .s{font-size:14px;opacity:.85;margin-top:6px}
+.now .row{display:flex;gap:8px;margin-top:14px}
+.now .row button{flex:1;border-radius:14px;padding:13px 0;font-weight:700;background:rgba(127,127,127,.22);color:inherit}
+.now .row button.main{background:var(--accent);color:#fff;flex:1.6}
+.more{width:100%;text-align:center;font-size:13px;color:var(--sub);padding:10px 0 4px}
 .pbtn.danger{background:none;color:#d14343;border:1px solid var(--line)}
 </style>
 </head>
@@ -266,7 +274,25 @@ function ticket(id){
   <button class="pbtn ghostbtn" data-act="close">닫기</button>`;
   $("#sheet").classList.add("show");
 }
+S.showCourse=false;
+function nowCard(plans,c){
+  const d=S.date, isToday=d===TODAY, h=new Date().getHours();
+  const left=plans.filter(p=>!p.done), next=left[0], studied=plans.some(p=>p.info?.story);
+  if(!plans.length) return "";
+  if(!left.length || (isToday&&h>=20))
+    return `<div class="now"><div class="k">🌙 저녁</div><div class="t">${left.length?`${left.length}곳 남았어요`:"오늘 코스 완주 🎉"}</div><div class="s">못 간 곳 정리하고 한 줄 남기면 끝</div>
+    <div class="row"><button class="main" data-act="wrap">하루 마무리</button></div></div>`;
+  if(!plans.some(p=>p.done) && (!isToday||h<11) && !studied && (sample||downloads))
+    return `<div class="now"><div class="k">☀️ 출발 전</div><div class="t">오늘 ${plans.length}곳 · 첫 일정 ${esc(next.time||"")} ${esc(next.text)}</div><div class="s">숙소 와이파이에서 한 번 준비하고 폰은 가방에</div>
+    <div class="row">${sample?`<button class="main" data-act="study">✨ 미리 공부</button>`:""}${downloads?`<button data-act="lock">🔒 잠금화면</button>`:""}</div></div>`;
+  const f=next.info||{};
+  return `<div class="now"><div class="k">다음 · ${plans.length-left.length+1}/${plans.length}</div>
+  <div class="t">${isMove(next)?"🎫 ":""}${esc(next.time||"")} ${esc(next.text)}</div>
+  ${f.route?`<div class="s">🚶 ${esc(f.route)}</div>`:""}${f.tip?`<div class="s">💡 ${esc(f.tip)}</div>`:""}${next.note?`<div class="s">📝 ${esc(next.note)}</div>`:""}
+  <div class="row"><button class="main" data-done="${next.id}">도착 ✓</button>${isMove(next)?`<button data-ticket="${next.id}">🎫 티켓</button>`:`<button data-open="${next.id}" data-show="1">자세히</button>`}</div></div>`;
+}
 function courseHTML(plans,c){
+  if(plans.length && !S.showCourse) return `${nowCard(plans,c)}<button class="more" data-act="course">전체 코스 ${plans.filter(p=>p.done).length}/${plans.length} 보기 ▾</button>`;
   const tip = c&&CONFIG.safety[c[2]];
   const done=plans.filter(p=>p.done).length;
   return `<div class="course"><div class="top"><h2>오늘의 코스 <span class="sub">${done}/${plans.length}</span></h2>
@@ -275,7 +301,7 @@ function courseHTML(plans,c){
   ${plans.length?plans.map((p,i)=>{ const f=p.info||{}, open=S.open===p.id;
     return `${i&&f.route?`<div class="leg">🚶 ${esc(f.route)}</div>`:""}<div class="stopi ${p.done?"done":""} ${isMove(p)?"move":""}"><div class="line"><button class="chk" data-done="${p.id}" aria-label="다녀옴">${p.done?"✓":""}</button><span class="tm">${esc(p.time||"")}</span><button class="ttl" data-open="${p.id}">${isMove(p)?"🎫 ":""}${esc(p.text)} <span class="sub">${open?"▲":"▼"}</span></button></div>
     ${open?`<div class="info">${i===0&&f.route?`<div>🚶 <b>가는 길</b> ${esc(f.route)}</div>`:""}${f.story?`<div>📖 ${esc(f.story)}</div>`:""}${f.see?`<div>👀 <b>꼭 볼 것</b> ${esc(f.see)}</div>`:""}${f.tip?`<div>💡 ${esc(f.tip)}</div>`:""}${f.planB?`<div>☔ <b>플랜 B</b> ${esc(f.planB)}</div>`:""}${isMove(p)?`<button class="pbtn ghostbtn" data-ticket="${p.id}" style="margin-top:0">🎫 티켓 크게 보기</button>`:""}${p.note?`<div>📝 ${esc(p.note)}</div>`:""}${!f.story&&!p.note?`<div class="sub">${sample?"✨ 미리 공부를 누르면 배경지식과 가는 길이 채워져요":"수정에서 메모를 남길 수 있어요"}</div>`:""}<div class="acts"><button data-cap="${p.id}">수정</button><button data-del="${p.id}">삭제</button></div></div>`:""}</div>`; }).join("")
-  :`<div class="empty" style="padding:14px 4px">아래 칸에 <b style="display:inline;font-size:15px">14:00 렐루서점</b>처럼 적으면<br>여기에 체크리스트로 쌓여요. 여러 줄 한 번에도 돼요.</div>`}</div>`;
+  :`<div class="empty" style="padding:14px 4px">아래 칸에 <b style="display:inline;font-size:15px">14:00 렐루서점</b>처럼 적으면<br>여기에 체크리스트로 쌓여요. 여러 줄 한 번에도 돼요.</div>`}${plans.length?`<button class="more" data-act="course">접기 ▴</button>`:""}</div>`;
 }
 async function study(){
   const d=S.date, c=cityOf(d), plans=plansOf(d);
@@ -330,7 +356,7 @@ function render(){
   ${courseHTML(plans,c)}
   <div class="summary">
     <div><span>오늘 쓴 돈</span><b>${won(spent)}</b></div>
-    <div><span>다녀온 곳</span><b>${done}/${plans.length}</b></div>
+    <div><span>메모</span><b>${list.filter(e=>e.type==="note").length}개</b></div>
     <div><span>사진</span><b>${photos}장</b></div>
   </div>
   <div class="moods"><small>오늘 기분</small>${MOODS.map((m,i)=>`<button class="${day.mood===i?"on":""}" data-mood="${i}">${m}</button>`).join("")}</div>
@@ -431,7 +457,7 @@ async function removeEntry(id){
 }
 
 /* ---------- 이벤트 ---------- */
-function go(d){ S.date=d; render(); scrollTo({top:0}); }
+function go(d){ S.date=d; S.showCourse=false; render(); scrollTo({top:0}); }
 $("#q").addEventListener("input",()=>{ S.force=null; updateGuess(); });
 const TOUCH=matchMedia("(pointer:coarse)").matches;
 $("#q").addEventListener("keydown",e=>{ if(!TOUCH&&e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); $("#send").click(); } });
@@ -469,7 +495,8 @@ document.addEventListener("click",safe(async e=>{
   if(ds.act==="delEdit"){ $("#sheet").classList.remove("show"); await removeEntry(ds.id); return; }
   if(ds.act==="undo"){ const u=S.undo; S.undo=null; $("#toast").classList.remove("show"); if(u){ delete u.id; await addEntry(u); } return; }
   if(ds.act==="saveDiary"){ await setDay(S.date,{diary:$("#ediary").value.trim()}); $("#sheet").classList.remove("show"); return; }
-  if(ds.open){ S.open=S.open===ds.open?null:ds.open; render(); return; }
+  if(ds.open){ if(ds.show){ S.showCourse=true; S.open=ds.open; } else S.open=S.open===ds.open?null:ds.open; render(); return; }
+  if(ds.act==="course"){ S.showCourse=!S.showCourse; render(); return; }
   if(ds.act==="study") await study();
   if(ds.act==="lock") await lockscreen();
   if(ds.act==="saver"){ SAVER=!SAVER; ls.set("saver",SAVER); if(SAVER) document.documentElement.dataset.saver="1"; else delete document.documentElement.dataset.saver; render(); }
