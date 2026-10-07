@@ -175,8 +175,8 @@
     const clusters = [];
     for (const pt of pts) {
       const c = clusters[clusters.length - 1];
-      if (c && pt.p - c.max <= tol) { c.pts.push(pt); c.max = pt.p; }
-      else clusters.push({ pts: [pt], max: pt.p });
+      if (c && pt.p - c.min <= tol) { c.pts.push(pt); c.max = pt.p; }
+      else clusters.push({ pts: [pt], min: pt.p, max: pt.p });
     }
     const n = candles.length;
     const last = candles[n - 1].close;
@@ -424,7 +424,105 @@
     return { ind, piv, levels, lines, candlePatterns: cpat, chartPatterns: chpat, divergence: div, signals: sig, catScores, score, verdict, risk };
   }
 
-  const api = { sma, ema, rma, stdev, rsi, macd, bollinger, stochastic, atr, adx, obv, mfi, ichimoku, pivots, supportResistance, trendlines, candlePatterns, chartPatterns, divergence, analyze, fmt };
+
+  // ---------- 백테스트 ----------
+  // 봉별 점수: 미래 데이터를 쓰지 않는 지표만 사용 (피벗·패턴은 사후 확정이라 제외 → 과대평가 방지)
+  function scoreSeries(candles) {
+    const h = candles.map(c => c.high), l = candles.map(c => c.low), c = candles.map(x => x.close), v = candles.map(x => x.volume || 0);
+    const s20 = sma(c, 20), s60 = sma(c, 60), s120 = sma(c, 120), r = rsi(c), m = macd(c), st = stochastic(h, l, c);
+    const ad = adx(h, l, c), bb = bollinger(c), ob = obv(c, v), mf = mfi(h, l, c, v), ic = ichimoku(h, l);
+    const W = { t: 0.35, m: 0.25, v: 0.15, x: 0.1 };
+    return c.map((px, i) => {
+      const cat = { t: [], m: [], v: [], x: [] };
+      if (s20[i] != null && s60[i] != null) cat.t.push(px > s20[i] && s20[i] > s60[i] ? 2 : px < s20[i] && s20[i] < s60[i] ? -2 : px > s20[i] ? 1 : -1);
+      if (s120[i] != null) cat.t.push(s60[i] > s120[i] ? 1 : -1);
+      if (ad.adx[i] != null) { const a = ad.adx[i]; cat.t.push(a < 20 ? 0 : (ad.pdi[i] > ad.mdi[i] ? 1 : -1) * (a > 30 ? 2 : 1)); }
+      if (ic.spanA[i] != null && ic.spanB[i] != null && ic.kijun[i] != null) {
+        const top = Math.max(ic.spanA[i], ic.spanB[i]), bot = Math.min(ic.spanA[i], ic.spanB[i]);
+        cat.t.push(px > top ? (ic.tenkan[i] > ic.kijun[i] ? 2 : 1) : px < bot ? (ic.tenkan[i] < ic.kijun[i] ? -2 : -1) : 0);
+      }
+      if (r[i] != null) cat.m.push(r[i] >= 70 ? -1 : r[i] <= 30 ? 1 : r[i] > 55 ? 1 : r[i] < 45 ? -1 : 0);
+      if (m.hist[i] != null && m.hist[i - 1] != null) { const up = m.hist[i] > m.hist[i - 1]; cat.m.push(m.hist[i] > 0 ? (up ? 2 : 1) : (up ? -1 : -2)); }
+      if (st.k[i] != null && st.d[i] != null) { const k = st.k[i], d = st.d[i]; cat.m.push(k < 20 && k > d ? 2 : k > 80 && k < d ? -2 : k < 20 ? 1 : k > 80 ? -1 : k > d ? 1 : -1); }
+      if (mf[i] != null) cat.v.push(mf[i] >= 80 ? -1 : mf[i] <= 20 ? 1 : 0);
+      if (i >= 20) cat.v.push(ob[i] - ob[i - 20] > 0 ? 1 : -1);
+      if (bb.upper[i] != null) { const pb = (px - bb.lower[i]) / (bb.upper[i] - bb.lower[i]); cat.x.push(pb > 1 ? -1 : pb < 0 ? 1 : 0); }
+      let tot = 0, ws = 0;
+      for (const k in W) if (cat[k].length) { tot += cat[k].reduce((a, b) => a + b, 0) / cat[k].length / 2 * 100 * W[k]; ws += W[k]; }
+      return ws && cat.t.length ? Math.round(tot / ws) : null;
+    });
+  }
+
+  // 신호 봉 종가로 판단 → 다음 봉 시가에 체결 (룩어헤드 없음), 수수료+슬리피지 편도 적용
+  function backtest(candles, opt = {}) {
+    const { entry = 30, exit = 0, fee = 0.1, allowShort = false, stopAtr = 0 } = opt;
+    const sc = scoreSeries(candles), at = atr(candles.map(c => c.high), candles.map(c => c.low), candles.map(c => c.close));
+    const f = fee / 100, n = candles.length;
+    let pos = 0, entryPx = 0, entryI = 0, stop = 0, eq = 1;
+    const equity = [], trades = [], bh0 = candles[0].close;
+    const close = (i, px, why) => {
+      const g = pos > 0 ? px / entryPx : 2 - px / entryPx;
+      const ret = g * (1 - f) / (1 + f) - 1;
+      eq *= 1 + ret;
+      trades.push({ side: pos > 0 ? 'L' : 'S', entryTime: candles[entryI].time, exitTime: candles[i].time, entryPx, exitPx: px, ret, bars: i - entryI, why });
+      pos = 0;
+    };
+    for (let i = 1; i < n; i++) {
+      const c = candles[i], s = sc[i - 1]; // 직전 봉 신호
+      if (pos && stopAtr && (pos > 0 ? c.low <= stop : c.high >= stop)) {
+        close(i, pos > 0 ? Math.min(c.open, stop) : Math.max(c.open, stop), '손절');
+      } else if (s != null) {
+        if (pos > 0 && s < exit) close(i, c.open, '신호');
+        else if (pos < 0 && s > -exit) close(i, c.open, '신호');
+        if (!pos && s >= entry) { pos = 1; entryPx = c.open; entryI = i; stop = c.open - stopAtr * (at[i - 1] || 0); }
+        else if (!pos && allowShort && s <= -entry) { pos = -1; entryPx = c.open; entryI = i; stop = c.open + stopAtr * (at[i - 1] || 0); }
+      }
+      const mtm = pos > 0 ? eq * (c.close / entryPx) * (1 - f) / (1 + f) : pos < 0 ? eq * (2 - c.close / entryPx) * (1 - f) / (1 + f) : eq;
+      equity.push({ time: c.time, value: mtm, bh: c.close / bh0 });
+    }
+    if (pos) close(n - 1, candles[n - 1].close, '기간종료');
+    // 지표
+    let peak = 0, mdd = 0;
+    for (const e of equity) { peak = Math.max(peak, e.value); mdd = Math.min(mdd, e.value / peak - 1); }
+    let bpk = 0, bmdd = 0;
+    for (const e of equity) { bpk = Math.max(bpk, e.bh); bmdd = Math.min(bmdd, e.bh / bpk - 1); }
+    const rets = equity.map((e, i) => i ? e.value / equity[i - 1].value - 1 : 0);
+    const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const sd = Math.sqrt(rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length);
+    const barSec = n > 1 ? (candles[n - 1].time - candles[0].time) / (n - 1) : 86400;
+    const perYear = 365.25 * 86400 / barSec, years = (candles[n - 1].time - candles[0].time) / 86400 / 365.25;
+    const wins = trades.filter(t => t.ret > 0), loss = trades.filter(t => t.ret <= 0);
+    const gp = wins.reduce((a, t) => a + t.ret, 0), gl = -loss.reduce((a, t) => a + t.ret, 0);
+    const exposure = trades.reduce((a, t) => a + t.bars, 0) / n;
+    return {
+      scores: sc, equity, trades,
+      stats: {
+        totalReturn: eq - 1, buyHold: candles[n - 1].close / bh0 - 1,
+        cagr: years > 0 ? eq ** (1 / years) - 1 : 0, mdd, bhMdd: bmdd,
+        sharpe: sd ? mean / sd * Math.sqrt(perYear) : 0,
+        trades: trades.length, winRate: trades.length ? wins.length / trades.length : 0,
+        profitFactor: gl ? gp / gl : gp ? Infinity : 0,
+        avgWin: wins.length ? gp / wins.length : 0, avgLoss: loss.length ? -gl / loss.length : 0,
+        exposure, years,
+      },
+    };
+  }
+
+  // 파라미터 최적화 그리드 (과최적화 주의: 앞 70% 학습, 뒤 30% 검증 결과를 함께 보고)
+  function optimize(candles, base = {}) {
+    const cut = Math.floor(candles.length * 0.7);
+    const train = candles.slice(0, cut), test = candles.slice(Math.max(0, cut - 150)); // 지표 워밍업 150봉
+    const res = [];
+    for (const entry of [15, 30, 45, 60]) for (const exit of [-30, -15, 0, 15]) {
+      if (exit >= entry) continue;
+      const tr = backtest(train, { ...base, entry, exit }).stats;
+      const te = backtest(test, { ...base, entry, exit }).stats;
+      res.push({ entry, exit, train: tr, test: te });
+    }
+    return res.sort((a, b) => b.train.sharpe - a.train.sharpe);
+  }
+
+  const api = { scoreSeries, backtest, optimize, sma, ema, rma, stdev, rsi, macd, bollinger, stochastic, atr, adx, obv, mfi, ichimoku, pivots, supportResistance, trendlines, candlePatterns, chartPatterns, divergence, analyze, fmt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TA = api;
 })(typeof window !== 'undefined' ? window : globalThis);
