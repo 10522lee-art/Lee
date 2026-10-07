@@ -1,7 +1,7 @@
 name: 차트 알림 봇
 on:
   schedule:
-    - cron: '7 * * * *'   # 매시 7분 (UTC)
+    - cron: '7,37 * * * *'   # 30분마다 (명령어 처리), 전체 분석은 매시 7분
   workflow_dispatch:
     inputs:
       summary:
@@ -29,5 +29,5 @@ jobs:
         run: |
           git config user.name "chart-bot"
           git config user.email "chart-bot@users.noreply.github.com"
-          git add chart/bot/state.json
-          git diff --cached --quiet || (git commit -m "chart-bot: update state [skip ci]" && git push)
+          git add chart/bot/state.json chart/bot/watchlist.json
+          git diff --cached --quiet || (git commit -m "chart-bot: update state [skip ci]" && git pull --rebase -q && git push)

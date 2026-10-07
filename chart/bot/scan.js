@@ -51,40 +51,154 @@ const tvLink = s => {
 const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
 const emo = score => score >= 15 ? '🟢' : score <= -15 ? '🔴' : '⚪';
 
-// 채팅 ID가 없으면 봇에게 마지막으로 메시지를 보낸 사람을 자동으로 찾아 저장
-async function chatId() {
-  if (process.env.TELEGRAM_CHAT_ID) return process.env.TELEGRAM_CHAT_ID;
-  const T = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN.trim()}`;
-  const me = await fetch(`${T}/getMe`).then(r => r.json());
-  if (!me.ok) throw new Error(`토큰이 올바르지 않습니다 (${me.description}). BotFather에서 토큰을 다시 복사해 등록하세요.`);
-  console.log(`봇 확인: @${me.result.username}`);
-  const r = await fetch(`${T}/getUpdates`).then(r => r.json());
-  console.log(`받은 메시지 ${r.result?.length ?? 0}개`, r.ok ? '' : r.description);
-  const found = (r.result || []).map(u => (u.message || u.my_chat_member || u.channel_post)?.chat?.id).filter(Boolean).pop();
-  if (found) state._chatId = found;
-  if (!state._chatId) throw new Error(`채팅 ID를 찾지 못했습니다. 텔레그램에서 @${me.result.username} 에게 메시지를 보낸 뒤 다시 실행하세요.`);
-  return state._chatId;
+// ---------- 텔레그램 ----------
+const TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+const live = TOKEN && !process.env.DRY_RUN;
+async function tg(method, body) {
+  const r = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }).then(r => r.json());
+  if (!r.ok) throw new Error(`텔레그램 ${method} 실패: ${r.description}`);
+  return r.result;
+}
+// 새 메시지 수신 (처음 메시지 보낸 사람을 주인으로 등록, 이후 주인 명령만 처리)
+async function readUpdates() {
+  if (!live) return (process.env.TEST_CMDS || '').split('|').filter(Boolean);
+  const me = await tg('getMe');
+  console.log(`봇 확인: @${me.username}`);
+  const ups = await tg('getUpdates', { offset: state._offset || 0, timeout: 0 });
+  console.log(`새 메시지 ${ups.length}개`);
+  const cmds = [];
+  for (const u of ups) {
+    state._offset = u.update_id + 1;
+    const m = u.message;
+    if (!m?.chat) continue;
+    if (process.env.TELEGRAM_CHAT_ID) state._chatId = +process.env.TELEGRAM_CHAT_ID;
+    if (!state._chatId) state._chatId = m.chat.id;
+    if (m.chat.id === state._chatId && m.text) cmds.push(m.text.trim());
+  }
+  return cmds;
 }
 async function send(text) {
-  if (process.env.DRY_RUN || !process.env.TELEGRAM_BOT_TOKEN) { console.log('--- 텔레그램 (미전송) ---\n' + text + '\n'); return; }
-  const r = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN.trim()}/sendMessage`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: await chatId(), text, parse_mode: 'HTML', disable_web_page_preview: true }),
-  });
-  if (!r.ok) throw new Error('텔레그램 전송 실패: ' + (await r.text()));
+  if (!live) { console.log('--- 텔레그램 (미전송) ---\n' + text + '\n'); return; }
+  if (!state._chatId) throw new Error('채팅 ID 없음. 텔레그램에서 봇에게 아무 메시지나 보낸 뒤 다시 실행하세요.');
+  // 텔레그램 메시지 길이 제한 4096자
+  for (let i = 0; i < text.length; i += 3900) await tg('sendMessage', { chat_id: state._chatId, text: text.slice(i, i + 3900), parse_mode: 'HTML', disable_web_page_preview: true });
 }
 
+// ---------- 모의매매 ----------
+const BAR_SEC = { '1h': 3600, '4h': 14400, '1d': 86400, '1w': 604800 };
+const PAPER = { entry: 30, exit: 0, fee: 0.1, stopAtr: 2, ...(CFG.paper || {}) };
+state._paper ||= { trades: [], positions: {} };
+function paperStep(key, name, cs, tf, out) {
+  const P = state._paper, now = Date.now() / 1000, px = cs.at(-1).close;
+  // 마감된 봉까지만 신호 계산 (진행 중인 봉 제외 → 실전과 동일 조건)
+  const done = cs.at(-1).time + BAR_SEC[tf] > now ? cs.slice(0, -1) : cs;
+  const lastBar = done.at(-1).time, score = TA.scoreSeries(done).at(-1);
+  const atrNow = TA.atr(done.map(c => c.high), done.map(c => c.low), done.map(c => c.close)).at(-1);
+  const pos = P.positions[key], f = PAPER.fee / 100;
+  const closePos = why => {
+    const ret = (px / pos.entry) * (1 - f) / (1 + f) - 1;
+    P.trades.push({ key, name, entry: pos.entry, exit: px, ret, inAt: pos.at, outAt: Math.floor(now), why });
+    if (P.trades.length > 500) P.trades.shift();
+    delete P.positions[key];
+    out.push(`${ret >= 0 ? '💰' : '🩸'} <b>모의 매도</b> ${esc(name)} ${TA.fmt(px)} · ${why} · 수익 <b>${(ret * 100).toFixed(2)}%</b>`);
+  };
+  if (pos && pos.stop && px <= pos.stop) return closePos('손절');
+  if (pos?.bar === lastBar || P.lastBar?.[key] === lastBar) return; // 같은 봉에서는 한 번만 판단
+  (P.lastBar ||= {})[key] = lastBar;
+  if (score == null) return;
+  if (pos && score < PAPER.exit) return closePos(`신호 약화 (점수 ${score})`);
+  if (!pos && score >= PAPER.entry) {
+    P.positions[key] = { name, entry: px, at: Math.floor(now), bar: lastBar, stop: PAPER.stopAtr ? px - PAPER.stopAtr * atrNow : 0 };
+    out.push(`🛒 <b>모의 매수</b> ${esc(name)} ${TA.fmt(px)} · 점수 ${score} · 손절 ${TA.fmt(P.positions[key].stop)}`);
+  }
+}
+function paperReport(prices) {
+  const P = state._paper, t = P.trades;
+  const wins = t.filter(x => x.ret > 0).length, sum = t.reduce((a, x) => a + x.ret, 0);
+  const comp = t.reduce((a, x) => a * (1 + x.ret), 1) - 1;
+  const open = Object.entries(P.positions).map(([k, p]) => {
+    const now = prices[k], r = now ? (now / p.entry - 1) * 100 : null;
+    return `• ${esc(p.name)} ${TA.fmt(p.entry)} → ${now ? TA.fmt(now) : '?'} ${r == null ? '' : `(<b>${r >= 0 ? '+' : ''}${r.toFixed(2)}%</b>)`}`;
+  });
+  const recent = t.slice(-5).reverse().map(x => `• ${esc(x.name)} ${(x.ret * 100).toFixed(2)}% (${x.why})`);
+  return `🧪 <b>모의매매 성과</b>\n완료 거래 ${t.length}회 · 승률 ${t.length ? Math.round(wins / t.length * 100) : 0}% · 평균 ${t.length ? (sum / t.length * 100).toFixed(2) : 0}% · 누적(복리) ${(comp * 100).toFixed(2)}%\n` +
+    `\n<b>보유 중 (${open.length})</b>\n${open.join('\n') || '없음'}` + (recent.length ? `\n\n<b>최근 거래</b>\n${recent.join('\n')}` : '') +
+    `\n\n<i>규칙: 점수 ≥${PAPER.entry} 매수, &lt;${PAPER.exit} 매도, ATR×${PAPER.stopAtr} 손절, 수수료 ${PAPER.fee}%</i>`;
+}
+
+// ---------- 명령어 ----------
+function guessSrc(sym) {
+  const u = sym.toUpperCase();
+  if (/^KRW-/.test(u)) return { src: 'upbit', symbol: u };
+  if (/(USDT|USDC|BTC)$/.test(u) && u.length > 5) return { src: 'binance', symbol: u };
+  if (/^\d{6}$/.test(u)) return { src: 'kr', symbol: u };
+  return { src: 'us', symbol: u };
+}
+let cfgChanged = false;
+async function analyzeOne(s, tf) {
+  const cs = await load(s, tf);
+  if (cs.length < 60) throw new Error(`데이터 부족 (${cs.length}봉)`);
+  return { cs, a: TA.analyze(cs), tv: TA.tvRating(cs), name: s.name || cs.name || s.symbol };
+}
+async function handle(cmd) {
+  const [c0, ...args] = cmd.split(/\s+/), c = c0.toLowerCase().replace(/@.*/, '');
+  const find = q => CFG.symbols.find(s => s.symbol.toUpperCase() === q.toUpperCase() || (s.name && s.name === q));
+  switch (c) {
+    case '/start': case '/help': case '도움말':
+      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n<i>명령은 최대 30분 안에 처리됩니다.</i>`;
+    case '/list': return `📋 <b>관심종목</b> (${CFG.interval})\n` + CFG.symbols.map(s => `• ${esc(s.name || s.symbol)} <code>${s.symbol}</code> [${s.src}]`).join('\n');
+    case '/add': {
+      if (!args[0]) return '사용법: /add 종목 [이름]';
+      if (find(args[0])) return `이미 있습니다: ${esc(args[0])}`;
+      const s = { ...guessSrc(args[0]), ...(args[1] ? { name: args.slice(1).join(' ') } : {}) };
+      try { await analyzeOne(s, CFG.interval); } catch (e) { return `❌ ${esc(args[0])} 데이터를 못 찾았습니다 (${esc(e.message)})`; }
+      CFG.symbols.push(s); cfgChanged = true;
+      return `✅ 추가: ${esc(s.name || s.symbol)} [${s.src}]`;
+    }
+    case '/remove': case '/del': {
+      const s = args[0] && find(args.join(' '));
+      if (!s) return `목록에 없습니다: ${esc(args.join(' '))}`;
+      CFG.symbols = CFG.symbols.filter(x => x !== s); cfgChanged = true;
+      return `🗑 삭제: ${esc(s.name || s.symbol)}`;
+    }
+    case '/tf': {
+      if (!BAR_SEC[args[0]]) return '사용법: /tf 1h | 4h | 1d | 1w';
+      CFG.interval = args[0]; cfgChanged = true;
+      return `⏱ 봉 단위 변경: ${args[0]}`;
+    }
+    case '/now': {
+      if (!args[0]) return '사용법: /now 종목';
+      const s = find(args.join(' ')) || guessSrc(args[0]);
+      try {
+        const { cs, a, tv, name } = await analyzeOne(s, CFG.interval), px = cs.at(-1).close;
+        const top = a.signals.slice().sort((x, y) => Math.abs(y.score) - Math.abs(x.score)).slice(0, 5).map(x => `• ${x.name} ${x.score > 0 ? '+' : ''}${x.score} — ${esc(x.note)}`);
+        return `${emo(a.score)} <b>${esc(name)}</b> ${TA.fmt(px)}\n종합 <b>${a.score} ${a.verdict}</b> · TV <b>${tv.summary.label}</b>\n\n${top.join('\n')}\n\n지지 ${TA.fmt(a.risk.support)} · 저항 ${TA.fmt(a.risk.resistance)}\n손절 ${TA.fmt(a.risk.stopLong)} · 목표 ${TA.fmt(a.risk.targetLong)}\n<a href="${tvLink(s)}">TradingView에서 보기</a>`;
+      } catch (e) { return `❌ ${esc(e.message)}`; }
+    }
+    case '/summary': forceSummary = true; return null;
+    case '/paper': wantPaper = true; return null;
+    default: return c.startsWith('/') ? '모르는 명령어입니다. /help 를 보내보세요.' : null;
+  }
+}
+let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
+
 (async () => {
+  const replies = [];
+  for (const cmd of await readUpdates()) { const r = await handle(cmd); if (r) replies.push(r); }
+  for (const r of replies) await send(r);
+  if (cfgChanged) fs.writeFileSync(path.join(__dirname, 'watchlist.json'), JSON.stringify(CFG, null, 2) + '\n');
+
+  // 30분마다 실행되지만 전체 분석은 매시 첫 실행에서만 (명령 응답·요약 요청 시는 즉시)
+  const fullScan = new Date().getUTCMinutes() < 30 || forceSummary || wantPaper || process.env.FORCE_SUMMARY || cfgChanged;
   const tf = CFG.interval, th = CFG.scoreThreshold;
-  const rows = [], alerts = [], errors = [];
-  for (const s of CFG.symbols) {
+  const rows = [], alerts = [], trades = [], errors = [], prices = {};
+  if (fullScan) for (const s of CFG.symbols) {
     const key = `${s.src}:${s.symbol}:${tf}`;
     try {
-      const cs = await load(s, tf);
-      if (cs.length < 60) throw new Error(`데이터 부족 (${cs.length}봉)`);
-      const a = TA.analyze(cs), tv = TA.tvRating(cs), px = cs[cs.length - 1].close, prevPx = cs[cs.length - 2].close;
-      const name = s.name || cs.name || s.symbol;
-      const cur = { score: a.score, verdict: a.verdict, tv: tv.summary.label, bar: cs[cs.length - 1].time, patterns: a.chartPatterns.filter(p => p.confirmed).map(p => p.name) };
+      const { cs, a, tv, name } = await analyzeOne(s, tf);
+      const px = cs.at(-1).close, prevPx = cs.at(-2).close;
+      prices[key] = px;
+      const cur = { score: a.score, verdict: a.verdict, tv: tv.summary.label, bar: cs.at(-1).time, patterns: a.chartPatterns.filter(p => p.confirmed).map(p => p.name) };
       const prev = state[key];
       const why = [];
       if (prev) {
@@ -97,13 +211,19 @@ async function send(text) {
       if (why.length) alerts.push(`${head}\n• ${why.join('\n• ')}\n종합 ${a.score} ${a.verdict} · TV ${tv.summary.label} (MA ${tv.ma.buy}/${tv.ma.neutral}/${tv.ma.sell} · 오실 ${tv.osc.buy}/${tv.osc.neutral}/${tv.osc.sell})\nRSI ${a.ind.rsi.at(-1)?.toFixed(0)} · 손절 ${TA.fmt(a.risk.stopLong)} · 목표 ${TA.fmt(a.risk.targetLong)}\n<a href="${tvLink(s)}">TradingView에서 보기</a>`);
       rows.push(`${emo(a.score)} <b>${esc(name)}</b> ${TA.fmt(px)}  ${a.score > 0 ? '+' : ''}${a.score} ${a.verdict} | TV ${tv.summary.label}`);
       state[key] = cur;
+      paperStep(key, name, cs, tf, trades);
     } catch (e) { errors.push(`${s.symbol}: ${e.message}`); }
   }
   const kstHour = (new Date().getUTCHours() + 9) % 24, today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-  const doSummary = process.env.FORCE_SUMMARY || (kstHour === CFG.dailySummaryHourKST && state._lastSummary !== today);
+  const daily = kstHour === CFG.dailySummaryHourKST && state._lastSummary !== today;
   if (alerts.length) await send(`🔔 <b>신호 변화</b> (${tf})\n\n${alerts.join('\n\n')}`);
-  if (doSummary) { await send(`📊 <b>관심종목 요약</b> ${today} (${tf})\n\n${rows.join('\n')}${errors.length ? `\n\n⚠ ${esc(errors.join(', '))}` : ''}`); state._lastSummary = today; }
+  if (trades.length) await send(trades.join('\n'));
+  if (fullScan && (daily || forceSummary)) {
+    await send(`📊 <b>관심종목 요약</b> ${today} (${tf})\n\n${rows.join('\n')}${errors.length ? `\n\n⚠ ${esc(errors.join(', '))}` : ''}`);
+    if (daily) state._lastSummary = today;
+  }
+  if (fullScan && (daily || wantPaper)) await send(paperReport(prices));
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 1));
-  console.log(`분석 ${rows.length}개, 알림 ${alerts.length}개, 오류 ${errors.length}개`, errors);
-  if (!rows.length && errors.length) process.exit(1);
+  console.log(`명령 ${replies.length}개, 분석 ${rows.length}개, 알림 ${alerts.length}개, 모의거래 ${trades.length}개, 오류 ${errors.length}개`, errors);
+  if (fullScan && !rows.length && errors.length) process.exit(1);
 })();
