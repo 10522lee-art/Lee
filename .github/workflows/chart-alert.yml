@@ -1,0 +1,33 @@
+name: 차트 알림 봇
+on:
+  schedule:
+    - cron: '7 * * * *'   # 매시 7분 (UTC)
+  workflow_dispatch:
+    inputs:
+      summary:
+        description: '요약 메시지 즉시 전송'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency: chart-alert
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 분석 및 알림
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_SUMMARY: ${{ github.event_name == 'workflow_dispatch' && inputs.summary && '1' || '' }}
+        run: node chart/bot/scan.js
+      - name: 상태 저장
+        run: |
+          git config user.name "chart-bot"
+          git config user.email "chart-bot@users.noreply.github.com"
+          git add chart/bot/state.json
+          git diff --cached --quiet || (git commit -m "chart-bot: update state [skip ci]" && git push)

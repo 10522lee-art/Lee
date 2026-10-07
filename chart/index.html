@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>차트 분석기</title>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>window.LightweightCharts || document.write('<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"><\/script>')</script>
+<script src="analysis.js"></script>
+<style>
+:root{--bg:#0f1218;--panel:#171b23;--line:#262c38;--text:#e6e9ef;--mute:#8a93a6;--up:#ef4444;--down:#3b82f6;--acc:#f59e0b;--good:#22c55e}
+:root[data-theme=light]{--bg:#f6f7f9;--panel:#fff;--line:#e3e6ec;--text:#14171f;--mute:#667085}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+h1{font-size:16px;margin:0 12px 0 0}
+select,input,button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
+button{cursor:pointer}button.primary{background:var(--acc);color:#111;border-color:var(--acc);font-weight:600}
+#sym{width:150px}
+main{display:grid;grid-template-columns:1fr 360px;gap:12px;padding:12px 16px}
+@media(max-width:960px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.toggles label{display:flex;gap:4px;align-items:center;font-size:12px;color:var(--mute);background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:3px 9px;cursor:pointer}
+.pane-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mute);margin-top:6px}
+.pane-head select{padding:2px 6px;font-size:12px}
+#main{height:440px}#sub1,#sub2{height:140px}
+.score{text-align:center;padding:8px 0}
+.score .num{font-size:44px;font-weight:800;line-height:1}
+.score .verdict{font-size:20px;font-weight:700;margin-top:4px}
+.gauge{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--down),#888 50%,var(--up));position:relative;margin:12px 4px}
+.gauge i{position:absolute;top:-4px;width:4px;height:18px;background:var(--text);border-radius:2px;transform:translateX(-2px)}
+.cats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:11px;text-align:center;color:var(--mute)}
+.cats b{display:block;font-size:14px;color:var(--text)}
+h3{font-size:13px;margin:14px 0 6px;color:var(--mute);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+td{padding:5px 4px;border-top:1px solid var(--line);vertical-align:top}
+td.s{text-align:right;font-weight:700;white-space:nowrap}
+.pos{color:var(--up)}.neg{color:var(--down)}.zero{color:var(--mute)}
+.note{color:var(--mute);font-size:11.5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12.5px}.kv span:nth-child(odd){color:var(--mute)}
+#status{font-size:12px;color:var(--mute);margin-left:auto}
+.disclaimer{font-size:11px;color:var(--mute);padding:0 16px 20px}
+.quote{display:flex;gap:10px;align-items:baseline;margin-bottom:6px}.quote .p{font-size:22px;font-weight:700}
+.bt-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--mute)}
+.bt-form input[type=number]{width:64px;padding:4px 6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:10px 0}
+.stat{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}.stat span{font-size:11px;color:var(--mute)}.stat b{display:block;font-size:16px}
+#equity{height:220px}
+.scroll{max-height:260px;overflow:auto}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:4px;animation:bl 1.5s infinite}@keyframes bl{50%{opacity:.2}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📈 차트 분석기</h1>
+  <select id="src">
+    <option value="binance">암호화폐 · Binance (USDT)</option>
+    <option value="upbit">암호화폐 · Upbit (KRW)</option>
+    <option value="kr">한국주식 · 코스피/코스닥</option>
+    <option value="us">미국주식 · NYSE/NASDAQ</option>
+    <option value="csv">CSV 파일 업로드</option>
+  </select>
+  <input id="sym" placeholder="BTCUSDT" list="symlist">
+  <datalist id="symlist"></datalist>
+  <select id="tf">
+    <option value="1h">1시간</option><option value="4h">4시간</option>
+    <option value="1d" selected>일봉</option><option value="1w">주봉</option>
+  </select>
+  <input type="file" id="file" accept=".csv,.txt" hidden>
+  <button class="primary" id="go">분석</button>
+  <label style="font-size:12px;color:var(--mute)"><input type="checkbox" id="live" checked> 실시간</label>
+  <button id="theme" title="테마">◐</button>
+  <span id="status"></span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="quote"><span id="qname"></span><span class="p" id="qprice"></span><span id="qchg"></span></div>
+    <div class="toggles" id="toggles"></div>
+    <div id="main"></div>
+    <div class="pane-head"><select id="s1sel"><option>RSI</option><option>스토캐스틱</option><option>MFI</option><option>종합점수</option></select><span id="s1val"></span></div>
+    <div id="sub1"></div>
+    <div class="pane-head"><select id="s2sel"><option>MACD</option><option>ADX/DMI</option><option>OBV</option></select><span id="s2val"></span></div>
+    <div id="sub2"></div>
+  </section>
+
+  <aside class="card" id="side">
+    <div class="note">종목을 선택하고 [분석]을 누르세요.</div>
+  </aside>
+  <section class="card" style="grid-column:1/-1">
+    <h3 style="margin-top:0">백테스트 — 종합점수 전략 검증</h3>
+    <div class="bt-form">
+      <label>진입 점수 ≥ <input type="number" id="btEntry" value="30" step="5"></label>
+      <label>청산 점수 &lt; <input type="number" id="btExit" value="0" step="5"></label>
+      <label>수수료+슬리피지(편도 %) <input type="number" id="btFee" value="0.1" step="0.05" min="0"></label>
+      <label>ATR 손절배수 <input type="number" id="btStop" value="2" step="0.5" min="0"></label>
+      <label><input type="checkbox" id="btShort"> 숏 허용</label>
+      <button id="btRun">실행</button><button id="btOpt">파라미터 최적화</button>
+    </div>
+    <div id="btOut"><p class="note">분석 후 [실행]을 누르세요.</p></div>
+    <div id="equity"></div>
+    <div id="btMore"></div>
+    <p class="note">신호는 봉 마감 기준으로 판단하고 다음 봉 시가에 체결합니다(미래 데이터 미사용 검증 완료). 피벗·차트패턴은 사후에 확정되는 정보라 백테스트 점수에서 제외됩니다. 과거 성과는 미래 수익을 보장하지 않습니다.</p>
+  </section>
+</main>
+<p class="disclaimer">※ 본 분석은 표준 기술적 지표(Wilder RSI/ATR/ADX, Appel MACD, Bollinger, Lane 스토캐스틱, 일목균형표 등)의 원전 공식에 따른 기계적 계산 결과이며 투자 권유가 아닙니다. 기술적 분석은 미래 수익을 보장하지 않습니다. 주식 데이터는 Yahoo Finance(지연 시세)를 공개 프록시 경유로 조회합니다.</p>
+
+<script>
+const $ = s => document.querySelector(s);
+const PRESETS = {
+  binance: ['BTCUSDT','ETHUSDT','SOLUSDT','XRPUSDT','BNBUSDT','DOGEUSDT','ADAUSDT'],
+  upbit: ['KRW-BTC','KRW-ETH','KRW-XRP','KRW-SOL','KRW-DOGE'],
+  kr: ['005930 삼성전자','000660 SK하이닉스','373220 LG에너지솔루션','005380 현대차','035420 NAVER','035720 카카오','^KS11 코스피','^KQ11 코스닥'],
+  us: ['AAPL','MSFT','NVDA','TSLA','AMZN','GOOGL','META','SPY','QQQ','^GSPC','^IXIC'],
+  csv: [],
+};
+const DEFAULT = { binance:'BTCUSDT', upbit:'KRW-BTC', kr:'005930', us:'AAPL', csv:'' };
+const TZ = -new Date().getTimezoneOffset() * 60; // 로컬 시간 표시용
+
+// ---------- 데이터 로더 ----------
+async function getJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+async function binance(sym, tf) {
+  const d = await getJSON(`https://api.binance.com/api/v3/klines?symbol=${sym.toUpperCase()}&interval=${tf}&limit=1000`);
+  return d.map(k => ({ time: k[0] / 1000, open: +k[1], high: +k[2], low: +k[3], close: +k[4], volume: +k[5] }));
+}
+async function upbit(sym, tf) {
+  const path = { '1h': 'minutes/60', '4h': 'minutes/240', '1d': 'days', '1w': 'weeks' }[tf];
+  let all = [], to = '';
+  for (let p = 0; p < 3; p++) { // 최대 600봉
+    const d = await getJSON(`https://api.upbit.com/v1/candles/${path}?market=${sym.toUpperCase()}&count=200${to ? '&to=' + encodeURIComponent(to) : ''}`);
+    if (!d.length) break;
+    all = all.concat(d);
+    to = d[d.length - 1].candle_date_time_utc + 'Z';
+    if (d.length < 200) break;
+  }
+  return all.reverse().map(k => ({ time: Date.parse(k.candle_date_time_utc + 'Z') / 1000, open: k.opening_price, high: k.high_price, low: k.low_price, close: k.trade_price, volume: k.candle_acc_trade_volume }));
+}
+const PROXIES = [u => u, u => 'https://corsproxy.io/?url=' + encodeURIComponent(u), u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u)];
+async function yahooRaw(ticker, tf) {
+  const [interval, range] = { '1h': ['60m', '730d'], '4h': ['60m', '730d'], '1d': ['1d', '5y'], '1w': ['1wk', '20y'] }[tf];
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`;
+  let err;
+  for (const px of PROXIES) {
+    try {
+      const j = await getJSON(px(url));
+      const r = j.chart?.result?.[0];
+      if (!r || !r.timestamp) throw new Error(j.chart?.error?.description || '데이터 없음');
+      const q = r.indicators.quote[0];
+      const out = r.timestamp.map((t, i) => ({ time: t, open: q.open[i], high: q.high[i], low: q.low[i], close: q.close[i], volume: q.volume[i] || 0 }))
+        .filter(c => c.open != null && c.close != null && c.high != null && c.low != null);
+      out.meta = r.meta;
+      return tf === '4h' ? aggregate(out, 4 * 3600) : out;
+    } catch (e) { err = e; }
+  }
+  throw err;
+}
+function aggregate(c, sec) {
+  const out = [];
+  for (const k of c) {
+    const b = Math.floor(k.time / sec) * sec, last = out[out.length - 1];
+    if (last && last.time === b) { last.high = Math.max(last.high, k.high); last.low = Math.min(last.low, k.low); last.close = k.close; last.volume += k.volume; }
+    else out.push({ ...k, time: b });
+  }
+  out.meta = c.meta;
+  return out;
+}
+async function krStock(sym, tf) {
+  sym = sym.split(' ')[0].toUpperCase();
+  if (sym.startsWith('^') || sym.includes('.')) return yahooRaw(sym, tf);
+  try { return await yahooRaw(sym + '.KS', tf); } catch { return yahooRaw(sym + '.KQ', tf); }
+}
+const usStock = (sym, tf) => yahooRaw(sym.split(' ')[0].toUpperCase(), tf);
+
+function parseCSV(text) {
+  const rows = text.trim().split(/\r?\n/).map(r => r.split(/[,;\t]/).map(s => s.trim().replace(/^"|"$/g, '')));
+  const head = rows[0].map(h => h.toLowerCase());
+  const find = (...ks) => head.findIndex(h => ks.some(k => h.includes(k)));
+  const ix = { t: find('date', 'time', '날짜', '일자'), o: find('open', '시가'), h: find('high', '고가'), l: find('low', '저가'), c: find('close', '종가'), v: find('vol', '거래량') };
+  if ([ix.t, ix.o, ix.h, ix.l, ix.c].some(x => x < 0)) throw new Error('CSV 헤더 필요: Date, Open, High, Low, Close, (Volume)');
+  const num = s => +String(s).replace(/,/g, '');
+  const out = rows.slice(1).map(r => {
+    const raw = r[ix.t]; let t = /^\d{10,13}$/.test(raw) ? +raw / (raw.length === 13 ? 1000 : 1) : Date.parse(raw.replace(/\./g, '-')) / 1000;
+    return { time: t, open: num(r[ix.o]), high: num(r[ix.h]), low: num(r[ix.l]), close: num(r[ix.c]), volume: ix.v >= 0 ? num(r[ix.v]) : 0 };
+  }).filter(c => isFinite(c.time) && isFinite(c.close));
+  out.sort((a, b) => a.time - b.time);
+  return out.filter((c, i) => i === 0 || c.time !== out[i - 1].time);
+}
+
+// ---------- 차트 ----------
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let charts = [], series = {}, data = null, result = null, raw = null, curName = '', eqChart = null;
+const TOG = { ma: ['이동평균', true], bb: ['볼린저', true], ichi: ['일목구름', false], sr: ['지지/저항', true], tl: ['추세선', true], pat: ['패턴표시', true], vol: ['거래량', true] };
+const tog = {};
+$('#toggles').innerHTML = Object.entries(TOG).map(([k, [n, on]]) => `<label><input type="checkbox" data-k="${k}" ${on ? 'checked' : ''}>${n}</label>`).join('');
+$('#toggles').addEventListener('change', () => render());
+
+function baseOpts(el, showTime) {
+  return {
+    width: el.clientWidth, height: el.clientHeight,
+    layout: { background: { color: css('--panel') }, textColor: css('--mute'), fontSize: 11 },
+    grid: { vertLines: { color: css('--line') }, horzLines: { color: css('--line') } },
+    rightPriceScale: { borderColor: css('--line'), minimumWidth: 80 },
+    timeScale: { borderColor: css('--line'), timeVisible: true, visible: showTime },
+    crosshair: { mode: 0 },
+  };
+}
+function line(chart, data, color, w = 1, extra = {}) {
+  const s = chart.addLineSeries({ color, lineWidth: w, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, ...extra });
+  s.setData(data);
+  return s;
+}
+const toSeries = (arr) => arr.map((v, i) => v == null || !isFinite(v) ? { time: data[i].t } : { time: data[i].t, value: v });
+
+function render() {
+  if (!data) return;
+  const keep = charts[0]?.timeScale().getVisibleLogicalRange();
+  document.querySelectorAll('#toggles input').forEach(i => tog[i.dataset.k] = i.checked);
+  charts.forEach(c => c.remove()); charts = [];
+  const up = css('--up'), dn = css('--down');
+  const R = result, I = R.ind;
+
+  // 메인
+  const elM = $('#main'), m = LightweightCharts.createChart(elM, baseOpts(elM, true));
+  charts.push(m);
+  const cs = m.addCandlestickSeries({ upColor: up, downColor: dn, borderUpColor: up, borderDownColor: dn, wickUpColor: up, wickDownColor: dn });
+  cs.setData(data.map(c => ({ time: c.t, open: c.open, high: c.high, low: c.low, close: c.close })));
+  if (tog.vol) {
+    const v = m.addHistogramSeries({ priceScaleId: 'vol', priceFormat: { type: 'volume' }, lastValueVisible: false, priceLineVisible: false });
+    m.priceScale('vol').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+    v.setData(data.map(c => ({ time: c.t, value: c.volume, color: c.close >= c.open ? up + '55' : dn + '55' })));
+  }
+  if (tog.ma) {
+    line(m, toSeries(I.sma5), '#a3a3a3'); line(m, toSeries(I.sma20), '#f59e0b', 1.5);
+    line(m, toSeries(I.sma60), '#22c55e', 1.5); line(m, toSeries(I.sma120), '#a855f7', 1.5);
+  }
+  if (tog.bb) {
+    const o = { lineStyle: 2 };
+    line(m, toSeries(I.bb.upper), '#64748b', 1, o); line(m, toSeries(I.bb.lower), '#64748b', 1, o);
+  }
+  if (tog.ichi) {
+    line(m, toSeries(I.ichi.tenkan), '#ec4899'); line(m, toSeries(I.ichi.kijun), '#0ea5e9');
+    line(m, toSeries(I.ichi.spanA), '#16a34a88', 1); line(m, toSeries(I.ichi.spanB), '#dc262688', 1);
+  }
+  if (tog.sr) R.levels.forEach(l => cs.createPriceLine({ price: l.price, color: l.type === 'resistance' ? up + 'bb' : dn + 'bb', lineWidth: 1, lineStyle: 1, axisLabelVisible: true, title: `${l.type === 'resistance' ? '저항' : '지지'}×${l.touches}` }));
+  if (tog.tl) R.lines.forEach(t => {
+    const n = data.length - 1;
+    line(m, [{ time: data[t.a].t, value: t.pa }, { time: data[n].t, value: t.projected }], t.kind === 'resistance' ? up : dn, 1, { lineStyle: 0 });
+  });
+  if (tog.pat) {
+    const mk = R.candlePatterns.filter(p => p.dir !== 0).slice(-60).map(p => ({
+      time: data[p.i].t, position: p.dir > 0 ? 'belowBar' : 'aboveBar', color: p.dir > 0 ? up : dn,
+      shape: p.dir > 0 ? 'arrowUp' : 'arrowDown', text: p.name,
+    }));
+    cs.setMarkers(mk.sort((a, b) => a.time - b.time));
+  }
+
+  // 보조 1
+  const el1 = $('#sub1'), s1 = LightweightCharts.createChart(el1, baseOpts(el1, false)); charts.push(s1);
+  const i = data.length - 1, sel1 = $('#s1sel').value;
+  const guides = (ch, ref, vals, color = '#64748b') => vals.forEach(v => ref.createPriceLine({ price: v, color, lineStyle: 2, lineWidth: 1, axisLabelVisible: false }));
+  if (sel1 === 'RSI') { const r = line(s1, toSeries(I.rsi), '#a855f7', 1.5, { lastValueVisible: true }); guides(s1, r, [30, 50, 70]); $('#s1val').textContent = `RSI(14) ${I.rsi[i]?.toFixed(1)}`; }
+  if (sel1 === '스토캐스틱') { const k = line(s1, toSeries(I.stoch.k), '#0ea5e9', 1.5); line(s1, toSeries(I.stoch.d), '#f59e0b'); guides(s1, k, [20, 80]); $('#s1val').textContent = `%K ${I.stoch.k[i]?.toFixed(1)} %D ${I.stoch.d[i]?.toFixed(1)}`; }
+  if (sel1 === '종합점수') { const sc = TA.scoreSeries(raw); const r = line(s1, toSeries(sc), '#f59e0b', 1.5, { lastValueVisible: true }); guides(s1, r, [-30, 0, 30]); $('#s1val').textContent = `점수 ${sc[i]}`; }
+  if (sel1 === 'MFI') { const r = line(s1, toSeries(I.mfi), '#14b8a6', 1.5); guides(s1, r, [20, 80]); $('#s1val').textContent = `MFI(14) ${I.mfi[i]?.toFixed(1)}`; }
+
+  // 보조 2
+  const el2 = $('#sub2'), s2 = LightweightCharts.createChart(el2, baseOpts(el2, false)); charts.push(s2);
+  const sel2 = $('#s2sel').value;
+  if (sel2 === 'MACD') {
+    const h = s2.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
+    h.setData(I.macd.hist.map((v, k) => v == null ? { time: data[k].t } : { time: data[k].t, value: v, color: v >= 0 ? (k && v >= I.macd.hist[k - 1] ? up : up + '88') : (k && v <= I.macd.hist[k - 1] ? dn : dn + '88') }));
+    line(s2, toSeries(I.macd.line), '#f59e0b', 1.5); line(s2, toSeries(I.macd.signal), '#0ea5e9');
+    $('#s2val').textContent = `MACD ${TA.fmt(I.macd.line[i])} / Sig ${TA.fmt(I.macd.signal[i])}`;
+  }
+  if (sel2 === 'ADX/DMI') {
+    const a = line(s2, toSeries(I.adx.adx), '#e5e7eb', 1.5); line(s2, toSeries(I.adx.pdi), up); line(s2, toSeries(I.adx.mdi), dn); guides(s2, a, [20, 30]);
+    $('#s2val').textContent = `ADX ${I.adx.adx[i]?.toFixed(1)}  +DI ${I.adx.pdi[i]?.toFixed(1)}  -DI ${I.adx.mdi[i]?.toFixed(1)}`;
+  }
+  if (sel2 === 'OBV') { line(s2, toSeries(I.obv), '#14b8a6', 1.5); $('#s2val').textContent = `OBV ${TA.fmt(I.obv[i])}`; }
+
+  // 시간축 동기화
+  let syncing = false;
+  charts.forEach(c => c.timeScale().subscribeVisibleLogicalRangeChange(r => {
+    if (syncing || !r) return; syncing = true;
+    charts.forEach(o => o !== c && o.timeScale().setVisibleLogicalRange(r)); syncing = false;
+  }));
+  m.timeScale().setVisibleLogicalRange(keep || { from: Math.max(0, data.length - 180), to: data.length + 5 });
+}
+new ResizeObserver(() => { charts.forEach((c, k) => { const el = [$('#main'), $('#sub1'), $('#sub2')][k]; c.applyOptions({ width: el.clientWidth }); }); eqChart?.applyOptions({ width: $('#equity').clientWidth }); }).observe($('#main'));
+$('#s1sel').onchange = $('#s2sel').onchange = render;
+
+// ---------- 사이드 패널 ----------
+function cls(v) { return v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero'; }
+function side(name) {
+  const R = result, f = TA.fmt, rk = R.risk, last = data[data.length - 1];
+  const color = R.score >= 15 ? 'var(--up)' : R.score <= -15 ? 'var(--down)' : 'var(--mute)';
+  const recent = R.candlePatterns.filter(p => p.i >= data.length - 10).reverse();
+  $('#side').innerHTML = `
+    <div class="score"><div class="num" style="color:${color}">${R.score > 0 ? '+' : ''}${R.score}</div>
+      <div class="verdict" style="color:${color}">${R.verdict}</div>
+      <div class="gauge"><i style="left:${(R.score + 100) / 2}%"></i></div>
+      <div class="cats">${Object.entries(R.catScores).map(([k, v]) => `<div>${k}<b class="${cls(v)}">${v > 0 ? '+' : ''}${Math.round(v)}</b></div>`).join('')}</div>
+    </div>
+    ${(() => { const tv = TA.tvRating(raw), g = (k, x) => `<div class="stat"><span>${k}</span><b class="${cls(x.value > 0.1 ? 1 : x.value < -0.1 ? -1 : 0)}">${x.label}</b>${x.buy != null ? `<span>매수 ${x.buy} · 중립 ${x.neutral} · 매도 ${x.sell}</span>` : ''}</div>`;
+      return `<h3>TradingView 방식 기술적 등급</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${g('종합', tv.summary)}${g('이동평균 15', tv.ma)}${g('오실레이터 11', tv.osc)}</div>`; })()}
+    <h3>신호 상세 (${R.signals.length})</h3>
+    <table>${R.signals.map(s => `<tr><td><b>${s.name}</b><div class="note">${s.cat} · ${s.note}</div></td><td class="s ${cls(s.score)}">${s.score > 0 ? '+' : ''}${s.score}</td></tr>`).join('')}</table>
+    <h3>차트 패턴</h3>
+    ${R.chartPatterns.length + R.divergence.length ? `<table>${[...R.chartPatterns, ...R.divergence].map(p => `<tr><td><b class="${cls(p.dir)}">${p.name}</b><div class="note">${p.detail || ''}</div></td></tr>`).join('')}</table>` : '<div class="note">감지된 차트 패턴 없음</div>'}
+    <h3>최근 10봉 캔들 패턴</h3>
+    ${recent.length ? `<table>${recent.map(p => `<tr><td class="${cls(p.dir)}">${p.name}</td><td class="s note">${data.length - 1 - p.i}봉 전</td></tr>`).join('')}</table>` : '<div class="note">없음</div>'}
+    <h3>주요 지지/저항</h3>
+    <table>${R.levels.map(l => `<tr><td class="${l.type === 'resistance' ? 'pos' : 'neg'}">${l.type === 'resistance' ? '저항' : '지지'}</td><td>${f(l.price)}</td><td class="s note">${((l.price / last.close - 1) * 100).toFixed(1)}% · ${l.touches}회</td></tr>`).join('') || '<tr><td class="note">없음</td></tr>'}</table>
+    <h3>리스크 관리 (ATR 기준)</h3>
+    <div class="kv">
+      <span>ATR(14)</span><span>${f(rk.atr)} (${rk.atrPct.toFixed(2)}%)</span>
+      <span>롱 손절 (−2ATR)</span><span>${f(rk.stopLong)}</span>
+      <span>롱 목표 (+3ATR)</span><span>${f(rk.targetLong)}  · 손익비 1:1.5</span>
+      <span>숏 손절 (+2ATR)</span><span>${f(rk.stopShort)}</span>
+      <span>숏 목표 (−3ATR)</span><span>${f(rk.targetShort)}</span>
+    </div>
+    <p class="note">데이터 ${data.length}봉 · 마지막 ${new Date((last.t - TZ) * 1000).toLocaleString('ko-KR')}</p>`;
+  const prev = data[data.length - 2]?.close || last.close, chg = (last.close / prev - 1) * 100;
+  $('#qname').textContent = name;
+  $('#qprice').textContent = f(last.close);
+  $('#qchg').innerHTML = `<span class="${cls(chg)}">${chg >= 0 ? '▲' : '▼'} ${Math.abs(chg).toFixed(2)}%</span>`;
+}
+
+// ---------- 실행 ----------
+function setSrc() {
+  const s = $('#src').value;
+  $('#symlist').innerHTML = PRESETS[s].map(x => `<option value="${x}">`).join('');
+  $('#sym').value = DEFAULT[s]; $('#sym').placeholder = DEFAULT[s] || 'CSV 선택';
+  $('#sym').style.display = s === 'csv' ? 'none' : '';
+}
+$('#src').onchange = setSrc;
+$('#file').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { load(parseCSV(await f.text()), f.name); } catch (err) { $('#status').textContent = '⚠ ' + err.message; } };
+
+function load(candles, name, fresh = true) {
+  if (candles.length < 30) throw new Error(`데이터가 너무 적습니다 (${candles.length}봉, 최소 30봉)`);
+  if (fresh) { charts.forEach(c => c.remove()); charts = []; }
+  raw = candles; curName = name;
+  data = candles.map(c => ({ ...c, t: c.time + TZ }));
+  result = TA.analyze(candles);
+  render(); side(name);
+  if (fresh) runBT();
+  $('#status').innerHTML = `${liveOn() ? '<span class="live"></span>' : '✓ '}${candles.length}봉 · ${new Date().toLocaleTimeString('ko-KR')}`;
+  try { localStorage.setItem('chart-last', JSON.stringify({ src: $('#src').value, sym: $('#sym').value, tf: $('#tf').value })); } catch {}
+}
+async function go() {
+  const src = $('#src').value, sym = $('#sym').value.trim(), tf = $('#tf').value;
+  stopLive();
+  if (src === 'csv') return $('#file').click();
+  if (!sym) return;
+  $('#status').textContent = '불러오는 중…';
+  try {
+    const fn = { binance, upbit, kr: krStock, us: usStock }[src];
+    const c = await fn(sym, tf);
+    const nm = c.meta ? `${c.meta.shortName || c.meta.longName || c.meta.symbol} (${c.meta.symbol})` : sym.toUpperCase();
+    load(c, nm);
+    startLive(src, sym, tf);
+  } catch (e) {
+    $('#status').textContent = '⚠ ' + e.message;
+  }
+}
+// ---------- 실시간 ----------
+let ws = null, poll = null, pending = null;
+const liveOn = () => $('#live').checked && (ws || poll);
+function stopLive() { if (ws) { ws.onclose = null; ws.close(); ws = null; } clearInterval(poll); poll = null; }
+function tick(k) { // k: {time, open, high, low, close, volume}
+  const last = raw[raw.length - 1];
+  if (k.time === last.time) raw[raw.length - 1] = k;
+  else if (k.time > last.time) raw.push(k);
+  else return;
+  if (!pending) pending = setTimeout(() => { pending = null; load(raw, curName, false); }, 1500);
+}
+function startLive(src, sym, tf) {
+  stopLive();
+  if (!$('#live').checked) return;
+  if (src === 'binance') {
+    ws = new WebSocket(`wss://stream.binance.com:9443/ws/${sym.toLowerCase()}@kline_${tf}`);
+    ws.onmessage = e => { const k = JSON.parse(e.data).k; tick({ time: k.t / 1000, open: +k.o, high: +k.h, low: +k.l, close: +k.c, volume: +k.v }); };
+    ws.onclose = () => { ws = null; setTimeout(() => $('#live').checked && $('#src').value === src && startLive(src, sym, tf), 3000); };
+  } else {
+    const fn = { upbit, kr: krStock, us: usStock }[src];
+    poll = setInterval(async () => {
+      try { const c = await fn(sym, tf); c.slice(-3).forEach(tick); } catch {}
+    }, src === 'upbit' ? 10000 : 60000);
+  }
+}
+$('#live').onchange = () => $('#live').checked ? go() : (stopLive(), $('#status').textContent = '실시간 꺼짐');
+
+// ---------- 백테스트 UI ----------
+const pct = (x, d = 1) => isFinite(x) ? `${x >= 0 ? '+' : ''}${(x * 100).toFixed(d)}%` : '∞';
+function btOpts() { return { entry: +$('#btEntry').value, exit: +$('#btExit').value, fee: +$('#btFee').value, stopAtr: +$('#btStop').value, allowShort: $('#btShort').checked }; }
+function runBT() {
+  if (!raw) return;
+  const r = TA.backtest(raw, btOpts()), s = r.stats;
+  const st = (k, v, c = '') => `<div class="stat"><span>${k}</span><b class="${c}">${v}</b></div>`;
+  $('#btOut').innerHTML = `<div class="stats">
+    ${st('전략 수익률', pct(s.totalReturn), cls(s.totalReturn))}
+    ${st('보유(Buy&Hold)', pct(s.buyHold), cls(s.buyHold))}
+    ${st('연환산(CAGR)', pct(s.cagr), cls(s.cagr))}
+    ${st('최대낙폭(MDD)', pct(s.mdd), 'neg')}
+    ${st('보유 MDD', pct(s.bhMdd), 'neg')}
+    ${st('샤프지수', s.sharpe.toFixed(2))}
+    ${st('거래 횟수', s.trades)}
+    ${st('승률', pct(s.winRate, 0).replace('+', ''))}
+    ${st('손익비(PF)', isFinite(s.profitFactor) ? s.profitFactor.toFixed(2) : '∞')}
+    ${st('평균 수익/손실', `${pct(s.avgWin)} / ${pct(s.avgLoss)}`)}
+    ${st('시장 노출', pct(s.exposure, 0).replace('+', ''))}
+    ${st('검증 기간', s.years.toFixed(1) + '년')}
+  </div>${s.trades < 10 ? '<p class="note">⚠ 거래 수가 10회 미만이라 통계적 신뢰도가 낮습니다.</p>' : ''}`;
+  if (eqChart) eqChart.remove();
+  const el = $('#equity'); eqChart = LightweightCharts.createChart(el, { ...baseOpts(el, true), rightPriceScale: { borderColor: css('--line'), mode: 1 } });
+  line(eqChart, r.equity.map(e => ({ time: e.time + TZ, value: e.value })), css('--acc'), 2, { title: '전략', lastValueVisible: true });
+  line(eqChart, r.equity.map(e => ({ time: e.time + TZ, value: e.bh })), '#64748b', 1, { title: '보유', lastValueVisible: true });
+  eqChart.timeScale().fitContent();
+  const d = t => new Date(t * 1000).toLocaleDateString('ko-KR');
+  $('#btMore').innerHTML = `<h3>거래 내역 (${r.trades.length})</h3><div class="scroll"><table>
+    <tr class="note"><td>방향</td><td>진입</td><td>청산</td><td>사유</td><td class="s">수익률</td></tr>
+    ${r.trades.slice().reverse().map(t => `<tr><td>${t.side === 'L' ? '롱' : '숏'}</td><td>${d(t.entryTime)}<div class="note">${TA.fmt(t.entryPx)}</div></td><td>${d(t.exitTime)}<div class="note">${TA.fmt(t.exitPx)}</div></td><td class="note">${t.why} · ${t.bars}봉</td><td class="s ${cls(t.ret)}">${pct(t.ret)}</td></tr>`).join('')}
+  </table></div>`;
+}
+function runOpt() {
+  if (!raw) return;
+  const o = btOpts(), res = TA.optimize(raw, { fee: o.fee, stopAtr: o.stopAtr, allowShort: o.allowShort });
+  $('#btMore').innerHTML = `<h3>파라미터 최적화 — 앞 70% 학습 / 뒤 30% 검증 (샤프 순)</h3>
+    <p class="note">학습 구간 성과만 좋고 검증 구간이 나쁘면 과최적화입니다. 검증 구간 성과를 기준으로 판단하세요. 행을 누르면 적용됩니다.</p>
+    <div class="scroll"><table><tr class="note"><td>진입/청산</td><td>학습 수익·샤프</td><td>검증 수익·샤프</td><td class="s">검증 MDD</td></tr>
+    ${res.map(x => `<tr style="cursor:pointer" data-e="${x.entry}" data-x="${x.exit}"><td>${x.entry} / ${x.exit}</td><td class="${cls(x.train.totalReturn)}">${pct(x.train.totalReturn, 0)} · ${x.train.sharpe.toFixed(2)}</td><td class="${cls(x.test.totalReturn)}">${pct(x.test.totalReturn, 0)} · ${x.test.sharpe.toFixed(2)}</td><td class="s neg">${pct(x.test.mdd, 0)}</td></tr>`).join('')}
+    </table></div>`;
+  $('#btMore').querySelectorAll('tr[data-e]').forEach(tr => tr.onclick = () => { $('#btEntry').value = tr.dataset.e; $('#btExit').value = tr.dataset.x; runBT(); });
+}
+$('#btRun').onclick = runBT; $('#btOpt').onclick = runOpt;
+
+$('#go').onclick = go;
+$('#sym').addEventListener('keydown', e => e.key === 'Enter' && go());
+$('#tf').onchange = go;
+$('#theme').onclick = () => {
+  const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light';
+  try { localStorage.setItem('chart-theme', r.dataset.theme); } catch {}
+  render(); runBT();
+};
+try {
+  const t = localStorage.getItem('chart-theme'); if (t) document.documentElement.dataset.theme = t;
+  const l = JSON.parse(localStorage.getItem('chart-last') || 'null');
+  if (l) { $('#src').value = l.src; setSrc(); $('#sym').value = l.sym; $('#tf').value = l.tf; } else setSrc();
+} catch { setSrc(); }
+if ($('#src').value !== 'csv') go();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "interval": "1d",
+  "scoreThreshold": 30,
+  "dailySummaryHourKST": 9,
+  "symbols": [
+    { "src": "binance", "symbol": "BTCUSDT" },
+    { "src": "binance", "symbol": "ETHUSDT" },
+    { "src": "upbit", "symbol": "KRW-XRP" },
+    { "src": "kr", "symbol": "005930", "name": "삼성전자" },
+    { "src": "kr", "symbol": "000660", "name": "SK하이닉스" },
+    { "src": "us", "symbol": "NVDA" },
+    { "src": "us", "symbol": "QQQ" }
+  ]
+}
