@@ -53,5 +53,55 @@
   ]
  },
  "_lastSummary": "2026-10-08",
- "_chatId": 8343442590
+ "_chatId": 8343442590,
+ "_paper": {
+  "trades": [],
+  "positions": {
+   "binance:BTCUSDT:1d": {
+    "name": "BTCUSDT",
+    "entry": 83224,
+    "at": 1791410812,
+    "bar": 1791244800,
+    "stop": 78945.50490280255
+   },
+   "binance:ETHUSDT:1d": {
+    "name": "ETHUSDT",
+    "entry": 2567.24,
+    "at": 1791410812,
+    "bar": 1791244800,
+    "stop": 2405.5105128327286
+   },
+   "upbit:KRW-XRP:1d": {
+    "name": "KRW-XRP",
+    "entry": 1935,
+    "at": 1791410813,
+    "bar": 1791244800,
+    "stop": 1770.6418395714566
+   },
+   "us:NVDA:1d": {
+    "name": "NVIDIA Corporation",
+    "entry": 237.47000122070312,
+    "at": 1791410814,
+    "bar": 1791293400,
+    "stop": 225.82373456187764
+   },
+   "us:QQQ:1d": {
+    "name": "Invesco QQQ Trust, Series 1",
+    "entry": 757.72998046875,
+    "at": 1791410814,
+    "bar": 1791293400,
+    "stop": 739.4150127853613
+   }
+  },
+  "lastBar": {
+   "binance:BTCUSDT:1d": 1791244800,
+   "binance:ETHUSDT:1d": 1791244800,
+   "upbit:KRW-XRP:1d": 1791244800,
+   "kr:005930:1d": 1791244800,
+   "kr:000660:1d": 1791244800,
+   "us:NVDA:1d": 1791293400,
+   "us:QQQ:1d": 1791293400
+  }
+ },
+ "_offset": 30199082
 }
