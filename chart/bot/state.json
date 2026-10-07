@@ -1,0 +1,56 @@
+{
+ "binance:BTCUSDT:1d": {
+  "score": 9,
+  "verdict": "중립",
+  "tv": "중립",
+  "bar": 1791331200,
+  "patterns": []
+ },
+ "binance:ETHUSDT:1d": {
+  "score": 13,
+  "verdict": "중립",
+  "tv": "매도",
+  "bar": 1791331200,
+  "patterns": []
+ },
+ "upbit:KRW-XRP:1d": {
+  "score": 15,
+  "verdict": "매수",
+  "tv": "매도",
+  "bar": 1791331200,
+  "patterns": []
+ },
+ "kr:005930:1d": {
+  "score": 7,
+  "verdict": "중립",
+  "tv": "매수",
+  "bar": 1791331200,
+  "patterns": []
+ },
+ "kr:000660:1d": {
+  "score": -19,
+  "verdict": "매도",
+  "tv": "매도",
+  "bar": 1791331200,
+  "patterns": []
+ },
+ "us:NVDA:1d": {
+  "score": 41,
+  "verdict": "매수",
+  "tv": "매수",
+  "bar": 1791379800,
+  "patterns": [
+   "이중바닥"
+  ]
+ },
+ "us:QQQ:1d": {
+  "score": 45,
+  "verdict": "매수",
+  "tv": "매수",
+  "bar": 1791379800,
+  "patterns": [
+   "이중바닥"
+  ]
+ },
+ "_lastSummary": "2026-10-08"
+}
