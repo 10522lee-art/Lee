@@ -156,8 +156,8 @@
       let isH = true, isL = true;
       for (let j = i - w; j <= i + w; j++) {
         if (j === i) continue;
-        if (h[j] >= h[i]) isH = false;
-        if (l[j] <= l[i]) isL = false;
+        if (j < i ? h[j] >= h[i] : h[j] > h[i]) isH = false;
+        if (j < i ? l[j] <= l[i] : l[j] < l[i]) isL = false;
       }
       if (isH) highs.push(i);
       if (isL) lows.push(i);
