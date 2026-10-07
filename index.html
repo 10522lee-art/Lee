@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리 여행 일정</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1f2328;--sub:#6b7280;--line:#e5e1d8;--accent:#2f6fde;--chip:#eef3fc}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--card:#1f2226;--ink:#eceff3;--sub:#9aa3ad;--line:#2e3238;--accent:#7aa7ff;--chip:#24304a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;line-height:1.5}
+header{padding:28px 16px 12px;max-width:760px;margin:auto}
+h1{margin:0;font-size:26px}
+.meta{color:var(--sub);font-size:14px}
+nav{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:5}
+nav .in{max-width:760px;margin:auto;display:flex;gap:6px;padding:8px 16px;overflow-x:auto}
+nav button{border:0;background:none;color:var(--sub);padding:8px 12px;border-radius:999px;font-size:15px;white-space:nowrap;cursor:pointer}
+nav button.on{background:var(--ink);color:var(--bg)}
+main{max-width:760px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.day h2{margin:0 0 2px;font-size:18px}
+.chip{display:inline-block;background:var(--chip);color:var(--accent);font-size:12px;padding:2px 8px;border-radius:999px;margin-right:4px}
+.item{display:flex;gap:12px;padding:10px 0;border-top:1px dashed var(--line)}
+.item:first-of-type{border-top:0}
+.t{width:52px;flex:none;font-variant-numeric:tabular-nums;color:var(--sub);font-size:14px}
+.item b{display:block}
+.item small{color:var(--sub)}
+a{color:var(--accent)}
+.today{outline:2px solid var(--accent)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+label.ck{display:flex;gap:10px;padding:6px 0;align-items:center}
+label.ck input:checked+span{text-decoration:line-through;color:var(--sub)}
+.daynav{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.daynav button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.daynav button.on{border-color:var(--accent);color:var(--accent)}
+</style>
+</head>
+<body>
+<header><h1 id="title"></h1><div class="meta" id="meta"></div></header>
+<nav><div class="in" id="tabs"></div></nav>
+<main id="main"></main>
+
+<script>
+/* ============ 여기만 수정하면 됩니다 ============ */
+const TRIP = {
+  title: "유럽 여행 🇫🇷🇨🇭🇮🇹",
+  start: "2026-11-01",
+  people: "Lee 외 1명",
+  days: [
+    { date:"2026-11-01", city:"파리", hotel:"호텔 이름 (체크인 15:00)", items:[
+      { time:"10:00", title:"인천 출발", note:"KE901 · 터미널2", map:"" },
+      { time:"16:30", title:"파리 CDG 도착", note:"RER B 타고 시내로" },
+      { time:"19:00", title:"저녁 – 근처 비스트로", map:"https://maps.google.com/?q=Le+Marais" },
+    ]},
+    { date:"2026-11-02", city:"파리", items:[
+      { time:"09:00", title:"루브르 박물관", note:"예약 09:00 입장", map:"https://maps.google.com/?q=Louvre" },
+      { time:"14:00", title:"튈르리 정원 → 오랑주리" },
+      { time:"19:30", title:"에펠탑 야경", map:"https://maps.google.com/?q=Eiffel+Tower" },
+    ]},
+    { date:"2026-11-03", city:"파리 → 인터라켄", items:[
+      { time:"08:00", title:"TGV 리옹역 출발", note:"좌석 12번 차량" },
+    ]},
+  ],
+  bookings: [
+    { label:"항공 (인천↔파리)", value:"KE901 / 예약번호 ABC123" },
+    { label:"파리 숙소", value:"11/1–11/3 · 예약번호 0000" },
+    { label:"루브르", value:"11/2 09:00 · 2인" },
+  ],
+  checklist: ["여권","유심/eSIM","멀티어댑터","트래블카드","상비약","보조배터리"],
+};
+/* =============================================== */
+
+const $ = s => document.querySelector(s);
+const W = ["일","월","화","수","목","금","토"];
+const fmt = d => { const x=new Date(d+"T00:00"); return `${x.getMonth()+1}/${x.getDate()} (${W[x.getDay()]})`; };
+const todayStr = new Date().toISOString().slice(0,10);
+const store = { get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}} };
+
+$("#title").textContent = TRIP.title;
+const last = TRIP.days.at(-1).date;
+$("#meta").textContent = `${fmt(TRIP.start)} – ${fmt(last)} · ${TRIP.days.length}일 · ${TRIP.people}`;
+
+const dayCard = (d,i) => `
+  <div class="card day ${d.date===todayStr?"today":""}">
+    <h2>Day ${i+1} · ${fmt(d.date)}</h2>
+    <span class="chip">📍 ${d.city}</span>${d.hotel?`<span class="chip">🏨 ${d.hotel}</span>`:""}
+    <div style="margin-top:8px">${d.items.map(it=>`
+      <div class="item"><div class="t">${it.time||""}</div><div>
+        <b>${it.title}</b>${it.note?`<small>${it.note}</small>`:""}
+        ${it.map?` <small><a href="${it.map}" target="_blank" rel="noopener">지도</a></small>`:""}
+      </div></div>`).join("")}</div>
+  </div>`;
+
+const views = {
+  "빠른보기"(){
+    const idx = TRIP.days.findIndex(d=>d.date>=todayStr);
+    const i = idx<0?0:idx;
+    const sel = store.get("day", i);
+    return `<div class="daynav">${TRIP.days.map((d,k)=>`<button class="${k===sel?"on":""}" data-day="${k}">D${k+1} ${fmt(d.date)}</button>`).join("")}</div>${dayCard(TRIP.days[sel]||TRIP.days[0], sel)}`;
+  },
+  "전체일정"(){ return TRIP.days.map(dayCard).join(""); },
+  "예약정보"(){ return `<div class="card">${TRIP.bookings.map(b=>`<div class="row"><span>${b.label}</span><b>${b.value}</b></div>`).join("")}</div>`; },
+  "준비물"(){
+    const done = store.get("ck", {});
+    return `<div class="card">${TRIP.checklist.map(c=>`<label class="ck"><input type="checkbox" data-ck="${c}" ${done[c]?"checked":""}><span>${c}</span></label>`).join("")}</div>`;
+  },
+};
+
+let tab = store.get("tab","빠른보기");
+function render(){
+  $("#tabs").innerHTML = Object.keys(views).map(k=>`<button class="${k===tab?"on":""}" data-tab="${k}">${k}</button>`).join("");
+  $("#main").innerHTML = (views[tab]||views["빠른보기"])();
+}
+document.addEventListener("click", e=>{
+  const t=e.target.closest("[data-tab]"); if(t){tab=t.dataset.tab;store.set("tab",tab);render();}
+  const d=e.target.closest("[data-day]"); if(d){store.set("day",+d.dataset.day);render();}
+});
+document.addEventListener("change", e=>{
+  if(e.target.dataset.ck){const done=store.get("ck",{});done[e.target.dataset.ck]=e.target.checked;store.set("ck",done);}
+});
+render();
+</script>
+</body>
+</html>
