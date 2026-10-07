@@ -522,7 +522,75 @@
     return res.sort((a, b) => b.train.sharpe - a.train.sharpe);
   }
 
-  const api = { scoreSeries, backtest, optimize, sma, ema, rma, stdev, rsi, macd, bollinger, stochastic, atr, adx, obv, mfi, ichimoku, pivots, supportResistance, trendlines, candlePatterns, chartPatterns, divergence, analyze, fmt };
+
+  // ---------- TradingView Technical Ratings (공개 방법론 재현) ----------
+  // 이동평균 15개 + 오실레이터 11개 각각 매수(+1)/중립(0)/매도(-1) → 그룹 평균 → 종합
+  function wma(src, n) {
+    return src.map((_, i) => {
+      if (i < n - 1 || src[i - n + 1] == null) return null;
+      let s = 0, w = 0;
+      for (let j = 0; j < n; j++) { s += src[i - j] * (n - j); w += n - j; }
+      return s / w;
+    });
+  }
+  function tvRating(candles) {
+    const h = candles.map(c => c.high), l = candles.map(c => c.low), c = candles.map(x => x.close), v = candles.map(x => x.volume || 0);
+    const i = c.length - 1, px = c[i], ok = x => x != null && isFinite(x);
+    const ma = [], osc = [];
+    const maVote = (name, val) => ok(val) && ma.push({ name, v: val < px ? 1 : val > px ? -1 : 0, val });
+    for (const n of [10, 20, 30, 50, 100, 200]) { maVote(`EMA(${n})`, ema(c, n)[i]); maVote(`SMA(${n})`, sma(c, n)[i]); }
+    const ic = ichimoku(h, l);
+    if (ok(ic.kijun[i]) && ok(ic.spanAraw[i]) && ok(ic.spanBraw[i])) {
+      const k = ic.kijun[i], t = ic.tenkan[i], a = ic.spanAraw[i], b = ic.spanBraw[i];
+      ma.push({ name: '일목 기준선(9,26,52)', v: k < px && t > k && a > b && px > Math.max(a, b) ? 1 : k > px && t < k && a < b && px < Math.min(a, b) ? -1 : 0, val: k });
+    }
+    const pv = c.map((x, j) => x * v[j]), vw = sma(pv, 20), vs = sma(v, 20);
+    maVote('VWMA(20)', vs[i] ? vw[i] / vs[i] : null);
+    const hn = 9, w1 = wma(c, Math.floor(hn / 2)), w2 = wma(c, hn);
+    maVote('HMA(9)', wma(w1.map((x, j) => x == null || w2[j] == null ? null : 2 * x - w2[j]), Math.floor(Math.sqrt(hn)))[i]);
+
+    const O = (name, v, val) => osc.push({ name, v, val });
+    const e50 = sma(c, 50)[i], up = px > e50, dn = px < e50;
+    const r = rsi(c);
+    if (ok(r[i - 1])) O('RSI(14)', r[i] < 30 && r[i] > r[i - 1] ? 1 : r[i] > 70 && r[i] < r[i - 1] ? -1 : 0, r[i]);
+    const st = stochastic(h, l, c);
+    if (ok(st.d[i])) O('Stoch %K(14,3,3)', st.k[i] < 20 && st.d[i] < 20 && st.k[i] > st.d[i] ? 1 : st.k[i] > 80 && st.d[i] > 80 && st.k[i] < st.d[i] ? -1 : 0, st.k[i]);
+    const tp = c.map((x, j) => (h[j] + l[j] + x) / 3), tpm = sma(tp, 20);
+    const cci = tp.map((x, j) => { if (tpm[j] == null) return null; let md = 0; for (let k = j - 19; k <= j; k++) md += Math.abs(tp[k] - tpm[j]); md /= 20; return md ? (x - tpm[j]) / (0.015 * md) : 0; });
+    if (ok(cci[i - 1])) O('CCI(20)', cci[i] < -100 && cci[i] > cci[i - 1] ? 1 : cci[i] > 100 && cci[i] < cci[i - 1] ? -1 : 0, cci[i]);
+    const ad = adx(h, l, c);
+    if (ok(ad.adx[i - 1])) { const rising = ad.adx[i] > ad.adx[i - 1]; O('ADX(14)', ad.adx[i] > 20 && rising ? (ad.pdi[i] > ad.mdi[i] ? 1 : -1) : 0, ad.adx[i]); }
+    const mid = h.map((x, j) => (x + l[j]) / 2), s5 = sma(mid, 5), s34 = sma(mid, 34);
+    const ao = s5.map((x, j) => x == null || s34[j] == null ? null : x - s34[j]);
+    if (ok(ao[i - 2])) {
+      const saucerUp = ao[i] > 0 && ao[i - 1] < ao[i - 2] && ao[i] > ao[i - 1], saucerDn = ao[i] < 0 && ao[i - 1] > ao[i - 2] && ao[i] < ao[i - 1];
+      O('Awesome Osc.', saucerUp || (ao[i - 1] < 0 && ao[i] > 0) ? 1 : saucerDn || (ao[i - 1] > 0 && ao[i] < 0) ? -1 : 0, ao[i]);
+    }
+    if (i >= 11) { const m0 = c[i] - c[i - 10], m1 = c[i - 1] - c[i - 11]; O('Momentum(10)', m0 > m1 ? 1 : m0 < m1 ? -1 : 0, m0); }
+    const md = macd(c);
+    if (ok(md.signal[i])) O('MACD(12,26)', md.line[i] > md.signal[i] ? 1 : md.line[i] < md.signal[i] ? -1 : 0, md.line[i]);
+    const rr = r.map(x => x), srK = rr.map((x, j) => { if (j < 27 || x == null) return null; const hh = Math.max(...rr.slice(j - 13, j + 1)), ll = Math.min(...rr.slice(j - 13, j + 1)); return hh === ll ? 50 : (x - ll) / (hh - ll) * 100; });
+    const sk = sma(srK, 3), sd = sma(sk, 3);
+    if (ok(sd[i])) O('Stoch RSI(3,3,14,14)', dn && sk[i] < 20 && sd[i] < 20 && sk[i] > sd[i] ? 1 : up && sk[i] > 80 && sd[i] > 80 && sk[i] < sd[i] ? -1 : 0, sk[i]);
+    const wr = c.map((x, j) => j < 13 ? null : (() => { const hh = highest(h, 14, j), ll = lowest(l, 14, j); return hh === ll ? -50 : (hh - x) / (hh - ll) * -100; })());
+    if (ok(wr[i - 1])) O('Williams %R(14)', wr[i] < -80 && wr[i] > wr[i - 1] ? 1 : wr[i] > -20 && wr[i] < wr[i - 1] ? -1 : 0, wr[i]);
+    const e13 = ema(c, 13), bbp = h.map((x, j) => e13[j] == null ? null : (x - e13[j]) + (l[j] - e13[j]));
+    if (ok(bbp[i - 1])) O('Bull Bear Power', up && bbp[i] < 0 && bbp[i] > bbp[i - 1] ? 1 : dn && bbp[i] > 0 && bbp[i] < bbp[i - 1] ? -1 : 0, bbp[i]);
+    if (i >= 29) {
+      const bp = [], tr = [];
+      for (let j = 1; j <= i; j++) { const lo = Math.min(l[j], c[j - 1]), hi = Math.max(h[j], c[j - 1]); bp[j] = c[j] - lo; tr[j] = hi - lo; }
+      const avg = n => { let a = 0, b = 0; for (let j = i - n + 1; j <= i; j++) { a += bp[j]; b += tr[j]; } return b ? a / b : 0; };
+      const uo = 100 * (4 * avg(7) + 2 * avg(14) + avg(28)) / 7;
+      O('Ultimate Osc.(7,14,28)', uo > 70 ? 1 : uo < 30 ? -1 : 0, uo);
+    }
+    const avg = a => a.length ? a.reduce((s, x) => s + x.v, 0) / a.length : 0;
+    const label = x => x > 0.5 ? '적극 매수' : x > 0.1 ? '매수' : x >= -0.1 ? '중립' : x >= -0.5 ? '매도' : '적극 매도';
+    const maR = avg(ma), oscR = avg(osc), all = (maR + oscR) / 2;
+    const cnt = a => ({ buy: a.filter(x => x.v > 0).length, neutral: a.filter(x => x.v === 0).length, sell: a.filter(x => x.v < 0).length });
+    return { summary: { value: all, label: label(all) }, ma: { value: maR, label: label(maR), ...cnt(ma), items: ma }, osc: { value: oscR, label: label(oscR), ...cnt(osc), items: osc } };
+  }
+
+  const api = { tvRating, wma, scoreSeries, backtest, optimize, sma, ema, rma, stdev, rsi, macd, bollinger, stochastic, atr, adx, obv, mfi, ichimoku, pivots, supportResistance, trendlines, candlePatterns, chartPatterns, divergence, analyze, fmt };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TA = api;
 })(typeof window !== 'undefined' ? window : globalThis);

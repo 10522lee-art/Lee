@@ -306,6 +306,8 @@ function side(name) {
       <div class="gauge"><i style="left:${(R.score + 100) / 2}%"></i></div>
       <div class="cats">${Object.entries(R.catScores).map(([k, v]) => `<div>${k}<b class="${cls(v)}">${v > 0 ? '+' : ''}${Math.round(v)}</b></div>`).join('')}</div>
     </div>
+    ${(() => { const tv = TA.tvRating(raw), g = (k, x) => `<div class="stat"><span>${k}</span><b class="${cls(x.value > 0.1 ? 1 : x.value < -0.1 ? -1 : 0)}">${x.label}</b>${x.buy != null ? `<span>매수 ${x.buy} · 중립 ${x.neutral} · 매도 ${x.sell}</span>` : ''}</div>`;
+      return `<h3>TradingView 방식 기술적 등급</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${g('종합', tv.summary)}${g('이동평균 15', tv.ma)}${g('오실레이터 11', tv.osc)}</div>`; })()}
     <h3>신호 상세 (${R.signals.length})</h3>
     <table>${R.signals.map(s => `<tr><td><b>${s.name}</b><div class="note">${s.cat} · ${s.note}</div></td><td class="s ${cls(s.score)}">${s.score > 0 ? '+' : ''}${s.score}</td></tr>`).join('')}</table>
     <h3>차트 패턴</h3>
