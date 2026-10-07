@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>하루씩, 유럽</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="하루씩">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f7f3ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
 <style>
 :root{--bg:#f7f3ec;--card:#fffdf9;--ink:#1d1b18;--sub:#857d72;--line:#e8e1d5;--accent:#e2572b;--soft:#fbe6dc;--spend:#2f7d5b;--plan:#3f63c7;--note:#8a5cc2}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141210;--card:#1e1b18;--ink:#f1ece4;--sub:#a39a8e;--line:#332e28;--accent:#ff7a4d;--soft:#3a2219;--spend:#5fc596;--plan:#8aa5ff;--note:#c39cf0}}
@@ -84,6 +90,12 @@ h1{margin:2px 0 0;font-size:30px;letter-spacing:-.8px;line-height:1.1}
 .field:focus{border-color:var(--accent)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
 .pbtn{width:100%;margin-top:12px;padding:13px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700}
+.pbtn.ghostbtn{background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.bookday{border-top:1px solid var(--line);padding:14px 0;cursor:pointer}
+.bookday h3{margin:2px 0 6px}
+.bookday p{margin:4px 0 8px;white-space:pre-wrap}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
 .pbtn.danger{background:none;color:#d14343;border:1px solid var(--line)}
 </style>
 </head>
@@ -137,15 +149,20 @@ const won = n => "₩"+Math.round(n).toLocaleString("ko-KR");
 const krw = e => (e.amount||0)*(CONFIG.rates[e.cur]||1);
 const money = e => e.cur==="KRW"?won(e.amount):`${(+e.amount).toLocaleString("ko-KR")}${e.cur==="EUR"?"€":" CHF"}`;
 const nowHM = () => new Date().toTimeString().slice(0,5);
+const tnow = () => S.date===TODAY ? nowHM() : "";
 const ls = {get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 function toast(m){const t=$("#toast");t.textContent=m;S&&(S.undo=null);t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1700);}
 
-var S = { undo:null, date: TODAY>=FIRST&&TODAY<=LAST?TODAY:FIRST, entries:[], days:{}, force:null };
+var S = { me:null, names:{}, undo:null, date: TODAY>=FIRST&&TODAY<=LAST?TODAY:FIRST, entries:[], days:{}, force:null };
 
 /* ---------- 저장: claude.ai db 우선, 없으면 이 기기 ---------- */
-let db=null, assets=null, sample=null;
-const local = () => { S.entries=ls.get("L_entries",[]); S.days=ls.get("L_days",{}); };
-async function addEntry(o){ o.at=Date.now(); if(db) await db.collection("entries").add(o); else { o.id=Math.random().toString(36).slice(2); S.entries.push(o); ls.set("L_entries",S.entries); render(); } }
+let db=null, assets=null, sample=null, user=null, downloads=null;
+const local = () => { S.entries=ls.get("L_entries",[]); S.days=ls.get("L_days",{}); Object.assign(CONFIG.rates,ls.get("L_rates",{})); };
+async function saveRates(r){ Object.assign(CONFIG.rates,r); if(db) await db.collection("meta").doc("settings").set({rates:{EUR:CONFIG.rates.EUR,CHF:CONFIG.rates.CHF}}); else { ls.set("L_rates",r); render(); } }
+const people = () => [...new Set([S.me||"me",...S.entries.filter(e=>e.type==="spend"&&e.by).map(e=>e.by)])];
+const nameOf = id => id===(S.me||"me") ? "나" : (S.names[id]||"동행");
+async function loadNames(){ if(!user) return; const ids=people().filter(i=>i!=="me"); try{ const ps=await user.profiles(ids); ids.forEach(i=>S.names[i]=ps[i]?.name||""); }catch{} }
+async function addEntry(o){ o.at=Date.now(); if(o.type==="spend"){ o.by=o.by||S.me||"me"; o.shared=o.shared??true; } if(db) await db.collection("entries").add(o); else { o.id=Math.random().toString(36).slice(2); S.entries.push(o); ls.set("L_entries",S.entries); render(); } }
 async function updEntry(id,patch){ if(db) await db.collection("entries").doc(id).update(patch); else { Object.assign(S.entries.find(e=>e.id===id),patch); ls.set("L_entries",S.entries); render(); } }
 async function delEntry(id){ if(db) await db.collection("entries").doc(id).delete(); else { S.entries=S.entries.filter(e=>e.id!==id); ls.set("L_entries",S.entries); render(); } }
 async function setDay(d,patch){ const v={...(S.days[d]||{}),...patch,date:d}; if(db) await db.collection("days").doc(d).set(v); else { S.days[d]=v; ls.set("L_days",S.days); render(); } }
@@ -155,7 +172,8 @@ const safe = fn => async(...a)=>{ try{ await fn(...a); }catch(e){ toast("저장 
 function guess(line, date){
   line=line.trim(); if(!line) return null;
   const tm = line.match(/^(\d{1,2})[:시](\d{2})?\s*분?\s+(.+)/);
-  const mm = line.match(/(\d+(?:[.,]\d+)*)\s*(유로|eur|€|프랑|chf|만원|원|krw)?/i);
+  const nums=[...line.matchAll(/(\d+(?:[.,]\d+)*)\s*(유로|eur|€|프랑|chf|만원|원|krw|번째|번|명|개|일차|일|분|층|호|시간|시|km|키로|정거장|박|살|%|월)?/gi)];
+  const mm = nums.find(n=>n[2]&&/유로|eur|€|프랑|chf|원|krw/i.test(n[2])) || nums.find(n=>!n[2]);
   let cat=null; for(const [k,w] of Object.entries(CATS)) if(w.some(x=>line.includes(x))){cat=k;break;}
   const out = { date, text: line };
   if(tm){ return {...out,type:"plan",time:`${tm[1].padStart(2,"0")}:${tm[2]||"00"}`,text:tm[3],done:false}; }
@@ -163,15 +181,15 @@ function guess(line, date){
     let amount=parseFloat(/,\d{3}$/.test(mm[1])?mm[1].replace(",",""):mm[1].replace(",",".")), u=(mm[2]||"").toLowerCase(), cur=cityOf(date)?.[3]||"EUR";
     if(/유로|eur|€/.test(u)) cur="EUR"; else if(/프랑|chf/.test(u)) cur="CHF"; else if(u==="만원"){cur="KRW";amount*=1e4;} else if(/원|krw/.test(u)) cur="KRW";
     const text=line.replace(mm[0],"").replace(/카드|현금/g,"").replace(/\s+/g," ").trim();
-    return {...out,type:"spend",amount,cur,cat:cat||"기타",pay:/현금/.test(line)?"현금":"카드",text:text||cat||"지출",time:nowHM()};
+    return {...out,type:"spend",amount,cur,cat:cat||"기타",pay:/현금/.test(line)?"현금":"카드",text:text||cat||"지출",time:tnow()};
   }
-  return {...out,type:"note",time:nowHM()};
+  return {...out,type:"note",time:tnow()};
 }
 const TYPE_LABEL = {spend:"💸 지출",plan:"🗓️ 일정",note:"✏️ 메모"};
 function convert(g, type){
   if(!g||g.type===type) return g;
-  if(type==="note") return {date:g.date,type,text:g.type==="spend"?`${g.text} ${money(g)}`:g.text,time:nowHM()};
-  if(type==="plan") return {date:g.date,type,text:g.text,time:g.time||nowHM(),done:false};
+  if(type==="note") return {date:g.date,type,text:g.type==="spend"?`${g.text} ${money(g)}`:g.text,time:tnow()};
+  if(type==="plan") return {date:g.date,type,text:g.text,time:g.time||tnow(),done:false};
   if(type==="spend"){ const m=g.text.match(/(\d+(?:[.,]\d+)?)/); if(!m) return null; return guess(g.text.replace(m[0],"")+" "+m[1]+(cityOf(g.date)?.[3]==="CHF"?"chf":"유로"),g.date); }
 }
 function current(){ const lines=$("#q").value.split("\n").filter(l=>l.trim()); return lines.map(l=>{ let g=guess(l,S.date); if(S.force) g=convert(g,S.force)||g; return g; }); }
@@ -192,7 +210,7 @@ function route(){
 function entryHTML(e){
   const icon = e.type==="spend"?CAT_ICON[e.cat]||"💳":e.type==="plan"?(e.done?"✅":"🗓️"):e.type==="photo"?"📷":"✏️";
   let body="";
-  if(e.type==="spend") body=`<div class="meta"><span>${esc(e.time||"")} · ${esc(e.cat)} · ${esc(e.pay)}</span><span class="amt">${money(e)}</span></div><div class="txt">${esc(e.text)}${e.cur!=="KRW"?` <span class="sub">${won(krw(e))}</span>`:""}</div>`;
+  if(e.type==="spend") body=`<div class="meta"><span>${e.time?esc(e.time)+" · ":""}${esc(e.cat)} · ${esc(e.pay)}${people().length>1?` · ${esc(nameOf(e.by))}${e.shared===false?" 개인":""}`:""}</span><span class="amt">${money(e)}</span></div><div class="txt">${esc(e.text)}${e.cur!=="KRW"?` <span class="sub">${won(krw(e))}</span>`:""}</div>`;
   else if(e.type==="photo") body=`<div class="meta"><span>${esc(e.time||"")}</span></div><img src="${esc(e.url||"/_blob/"+e.assetId)}" alt="${esc(e.text||"사진")}" loading="lazy">${e.text?`<div class="txt">${esc(e.text)}</div>`:""}`;
   else body=`<div class="meta"><span>${esc(e.time||"")}${e.type==="plan"?(e.done?" · 다녀옴":" · 예정"):""}</span></div><div class="txt">${esc(e.text)}</div>`;
   const acts = `${e.type==="plan"?`<button class="go" data-done="${e.id}">${e.done?"되돌리기":"다녀왔어요 ✓"}</button>`:""}<button data-cap="${e.id}">${e.type==="photo"?"설명":"수정"}</button><button data-del="${e.id}">삭제</button>`;
@@ -235,8 +253,34 @@ function stats(){
   <div class="big" style="margin-top:12px">${won(tot)}</div><div class="sub">하루 평균 ${won(tot/days)} · 1€=${CONFIG.rates.EUR}원, 1CHF=${CONFIG.rates.CHF}원 기준</div>
   <h3>도시별</h3>${byCity.map(([c,v])=>`<div class="stat" style="display:block" data-date="${c[0]}"><div style="display:flex;justify-content:space-between"><span>${c[4]} ${esc(c[2])}</span><b>${won(v)}</b></div><div class="barline"><i style="width:${v/max*100}%"></i></div></div>`).join("")}
   <h3>어디에</h3>${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="stat"><span>${CAT_ICON[k]||""} ${esc(k)}</span><b>${won(v)}</b></div>`).join("")||`<div class="sub">아직 지출 기록이 없어요</div>`}
-  <button style="width:100%;margin-top:18px;padding:12px;border:1px solid var(--line);border-radius:14px" data-act="close">닫기</button>`;
+  ${settle()}
+  <h3>환율</h3><div class="grid2"><label class="sub">1€ = 원<input id="rEUR" class="field" type="number" inputmode="decimal" value="${CONFIG.rates.EUR}"></label><label class="sub">1CHF = 원<input id="rCHF" class="field" type="number" inputmode="decimal" value="${CONFIG.rates.CHF}"></label></div>
+  <div class="grid2"><button class="pbtn" data-act="saveRates">환율 저장</button><button class="pbtn ghostbtn" data-act="fetchRates">최신 환율 가져오기</button></div>
+  <div class="grid2"><button class="pbtn ghostbtn" data-act="book">📖 여행 책 보기</button>${downloads?`<button class="pbtn ghostbtn" data-act="csv">지출 CSV 저장</button>`:""}</div>
+  <button class="pbtn ghostbtn" data-act="close">닫기</button>`;
   $("#sheet").classList.add("show");
+}
+function settle(){
+  const ps=people(); if(ps.length<2) return `<h3>정산</h3><div class="sub">동행이 기록을 남기면 누가 얼마를 보내야 하는지 계산해 드려요. (기록 수정에서 결제한 사람·개인 지출을 바꿀 수 있어요)</div>`;
+  const paid={}, owe={}; ps.forEach(p=>{paid[p]=0;owe[p]=0;});
+  S.entries.filter(e=>e.type==="spend").forEach(e=>{ const v=krw(e), by=e.by||S.me||"me"; paid[by]=(paid[by]||0)+v; if(e.shared===false) owe[by]=(owe[by]||0)+v; else ps.forEach(p=>owe[p]+=v/ps.length); });
+  const bal=ps.map(p=>[p,paid[p]-owe[p]]), give=bal.filter(b=>b[1]<-1).sort((a,b)=>a[1]-b[1]), get=bal.filter(b=>b[1]>1).sort((a,b)=>b[1]-a[1]);
+  const tx=[]; let i=0,j=0; while(i<give.length&&j<get.length){ const v=Math.min(-give[i][1],get[j][1]); tx.push(`${esc(nameOf(give[i][0]))} → ${esc(nameOf(get[j][0]))} <b>${won(v)}</b>`); give[i][1]+=v; get[j][1]-=v; if(give[i][1]>=-1)i++; if(get[j][1]<=1)j++; }
+  return `<h3>정산</h3>${ps.map(p=>`<div class="stat"><span>${esc(nameOf(p))} 결제</span><b>${won(paid[p])}</b></div>`).join("")}<div class="diary" style="margin-top:8px">${tx.length?tx.join("<br>"):"딱 맞아요, 보낼 돈 없음 🙌"}</div>`;
+}
+function book(){
+  const days=[]; for(let d=FIRST; d<=LAST; d=add(d,1)) days.push(d);
+  $("#pane").innerHTML=`<h2>📖 여행 책</h2><div class="sub">${P(FIRST).getMonth()+1}/${P(FIRST).getDate()} – ${P(LAST).getMonth()+1}/${P(LAST).getDate()} · ${TOTAL_DAYS}일</div>
+  ${days.map(d=>{ const c=cityOf(d), L=S.entries.filter(e=>e.date===d), day=S.days[d]||{}, ph=L.filter(e=>e.type==="photo"), nt=L.filter(e=>e.type==="note"), pl=L.filter(e=>e.type==="plan"&&e.done), sp=L.filter(e=>e.type==="spend").reduce((s,e)=>s+krw(e),0);
+    if(!L.length&&!day.diary&&day.mood==null) return "";
+    return `<section class="bookday" data-date="${d}"><div class="dayno">DAY ${dayNo(d)} · ${P(d).getMonth()+1}/${P(d).getDate()}</div><h3>${c?c[4]+" "+esc(c[2]):""} ${day.mood!=null?MOODS[day.mood]:""}</h3>
+    ${day.diary?`<p>${esc(day.diary)}</p>`:""}
+    ${ph.length?`<div class="thumbs">${ph.map(p=>`<img src="${esc(p.url||"/_blob/"+p.assetId)}" alt="${esc(p.text||"사진")}" loading="lazy">`).join("")}</div>`:""}
+    ${pl.length?`<div class="sub">📍 ${pl.map(p=>esc(p.text)).join(" · ")}</div>`:""}
+    ${nt.map(n=>`<div>✏️ ${esc(n.text)}</div>`).join("")}
+    ${sp?`<div class="sub">💸 ${won(sp)}</div>`:""}</section>`; }).join("")||`<div class="empty">아직 기록이 없어요</div>`}
+  <button class="pbtn ghostbtn" data-act="stats">← 돌아가기</button>`;
+  $("#sheet").classList.add("show"); $("#pane").scrollTop=0;
 }
 
 async function wrapUp(){
@@ -260,7 +304,9 @@ function editSheet(id){
   $("#pane").innerHTML=`<h2>${x.type==="photo"?"사진 설명":"기록 수정"}</h2>
   <textarea id="etext" class="field" rows="2" placeholder="내용">${esc(x.text||"")}</textarea>
   <input id="etime" class="field" type="time" value="${esc(x.time||"")}">
-  ${x.type==="spend"?`<div class="grid2"><input id="eamt" class="field" type="number" inputmode="decimal" step="0.01" value="${x.amount}">${sel("ecur",["EUR","CHF","KRW"],x.cur)}${sel("ecat",Object.keys(CAT_ICON),x.cat)}${sel("epay",["카드","현금"],x.pay)}</div>`:""}
+  ${x.type==="spend"?`<div class="grid2"><input id="eamt" class="field" type="number" inputmode="decimal" step="0.01" value="${x.amount}">${sel("ecur",["EUR","CHF","KRW"],x.cur)}${sel("ecat",Object.keys(CAT_ICON),x.cat)}${sel("epay",["카드","현금"],x.pay)}</div>
+  <div class="grid2"><select id="eby" class="field">${people().map(i=>`<option value="${esc(i)}" ${i===(x.by||S.me||"me")?"selected":""}>${esc(nameOf(i))} 결제</option>`).join("")}</select>
+  <select id="eshared" class="field"><option value="1" ${x.shared!==false?"selected":""}>함께 쓴 돈</option><option value="0" ${x.shared===false?"selected":""}>개인 지출</option></select></div>`:""}
   <button class="pbtn" data-act="saveEdit" data-id="${id}">저장</button>
   <button class="pbtn danger" data-act="delEdit" data-id="${id}">삭제</button>`;
   $("#sheet").classList.add("show");
@@ -277,7 +323,8 @@ async function removeEntry(id){
 /* ---------- 이벤트 ---------- */
 function go(d){ S.date=d; render(); scrollTo({top:0}); }
 $("#q").addEventListener("input",()=>{ S.force=null; updateGuess(); });
-$("#q").addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); $("#send").click(); } });
+const TOUCH=matchMedia("(pointer:coarse)").matches;
+$("#q").addEventListener("keydown",e=>{ if(!TOUCH&&e.key==="Enter"&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); $("#send").click(); } });
 $("#send").addEventListener("click",safe(async()=>{
   const items=current(); if(!items.length) return;
   $("#q").value=""; S.force=null; updateGuess();
@@ -289,7 +336,7 @@ $("#file").addEventListener("change",safe(async e=>{
   if(!assets){ toast("사진은 claude.ai에서 열었을 때 올릴 수 있어요"); return; }
   const cap=$("#q").value.trim(); $("#q").value=""; updateGuess();
   toast(`사진 ${files.length}장 올리는 중…`);
-  for(const f of files){ const r=await assets.upload(f); await addEntry({date:S.date,type:"photo",assetId:r.id,url:r.url,text:cap,time:nowHM()}); }
+  for(const f of files){ const r=await assets.upload(f); await addEntry({date:S.date,type:"photo",assetId:r.id,url:r.url,text:cap,time:tnow()}); }
   toast("사진 저장");
 }));
 let sx=null, sy=0;
@@ -307,12 +354,18 @@ document.addEventListener("click",safe(async e=>{
   if(ds.del){ await removeEntry(ds.del); return; }
   if(ds.cap){ editSheet(ds.cap); return; }
   if(ds.act==="saveEdit"){ const id=ds.id, x=S.entries.find(e=>e.id===id), patch={text:$("#etext").value.trim(),time:$("#etime").value};
-    if(x.type==="spend"){ const a=parseFloat($("#eamt").value); if(!(a>0)) return toast("금액을 확인해주세요"); patch.amount=a; patch.cur=$("#ecur").value; patch.cat=$("#ecat").value; patch.pay=$("#epay").value; }
+    if(x.type==="spend"){ const a=parseFloat($("#eamt").value); if(!(a>0)) return toast("금액을 확인해주세요"); patch.amount=a; patch.cur=$("#ecur").value; patch.cat=$("#ecat").value; patch.pay=$("#epay").value; patch.by=$("#eby").value; patch.shared=$("#eshared").value==="1"; }
     await updEntry(id,patch); $("#sheet").classList.remove("show"); toast("수정했어요"); return; }
   if(ds.act==="delEdit"){ $("#sheet").classList.remove("show"); await removeEntry(ds.id); return; }
   if(ds.act==="undo"){ const u=S.undo; S.undo=null; $("#toast").classList.remove("show"); if(u){ delete u.id; await addEntry(u); } return; }
   if(ds.act==="saveDiary"){ await setDay(S.date,{diary:$("#ediary").value.trim()}); $("#sheet").classList.remove("show"); return; }
   if(ds.act==="stats") stats();
+  if(ds.act==="book") book();
+  if(ds.act==="saveRates"){ const e=parseFloat($("#rEUR").value), c=parseFloat($("#rCHF").value); if(!(e>0&&c>0)) return toast("환율을 확인해주세요"); await saveRates({EUR:e,CHF:c}); toast("환율 저장"); stats(); }
+  if(ds.act==="fetchRates"){ try{ const [a,b]=await Promise.all(["EUR","CHF"].map(f=>fetch(`https://api.frankfurter.app/latest?from=${f}&to=KRW`).then(r=>r.json()))); $("#rEUR").value=Math.round(a.rates.KRW); $("#rCHF").value=Math.round(b.rates.KRW); toast("최신 환율을 넣었어요 · 저장을 눌러주세요"); }catch{ toast("여기선 환율을 못 가져와요 · 직접 입력해주세요"); } }
+  if(ds.act==="csv"){ const rows=[["날짜","시간","도시","카테고리","내용","금액","통화","원화","결제","결제자","구분"]].concat(S.entries.filter(e=>e.type==="spend").sort((a,b)=>(a.date+(a.time||"")).localeCompare(b.date+(b.time||""))).map(e=>[e.date,e.time||"",cityOf(e.date)?.[2]||"",e.cat,e.text,e.amount,e.cur,Math.round(krw(e)),e.pay,nameOf(e.by),e.shared===false?"개인":"공동"]));
+    const csv="\ufeff"+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    try{ await downloads.save({filename:"여행경비.csv",data:new Blob([csv],{type:"text/csv"})}); }catch(e){ if(e?.code!=="cancelled"&&e?.code!=="declined") toast("저장 못 했어요"); } }
   if(ds.act==="close") $("#sheet").classList.remove("show");
   if(ds.act==="wrap") await wrapUp();
 }));
@@ -320,13 +373,17 @@ $("#sheet").addEventListener("click",e=>{ if(e.target.id==="sheet") $("#sheet").
 
 /* ---------- 시작 ---------- */
 local(); render();
+try{ const c=document.createElement("canvas"); c.width=c.height=180; const g=c.getContext("2d"); g.fillStyle="#e2572b"; g.fillRect(0,0,180,180); g.font="110px serif"; g.textAlign="center"; g.textBaseline="middle"; g.fillText("🧳",90,98);
+  const u=c.toDataURL("image/png"); for(const rel of ["apple-touch-icon","icon"]){ const l=document.createElement("link"); l.rel=rel; l.href=u; document.head.appendChild(l); } }catch{}
 (async()=>{
   if(!window.claude?.use) return;
-  const [d,a,s]=await Promise.all(["db","assets","sample"].map(n=>window.claude.use(n)));
-  assets=a; sample=s;
+  const [d,a,s,u,dl]=await Promise.all(["db","assets","sample","user","downloads"].map(n=>window.claude.use(n)));
+  assets=a; sample=s; user=u; downloads=dl;
+  if(user){ try{ S.me=await user.id(); }catch{} }
   if(d){
     db=d;
-    db.collection("entries").onSnapshot(sn=>{ S.entries=sn.docs.map(x=>({...x.data(),id:x.id})); render(); },err=>toast("동기화 오류: "+err.code));
+    db.collection("entries").onSnapshot(sn=>{ S.entries=sn.docs.map(x=>({...x.data(),id:x.id})); render(); if(people().some(i=>i!==S.me&&i!=="me"&&!(i in S.names))) loadNames().then(render); },err=>toast("동기화 오류: "+err.code));
+    db.collection("meta").doc("settings").onSnapshot(sn=>{ const r=sn.data()?.rates; if(r){ Object.assign(CONFIG.rates,r); render(); } });
     db.collection("days").onSnapshot(sn=>{ S.days={}; sn.docs.forEach(x=>S.days[x.id]=x.data()); render(); });
   }
   render();
