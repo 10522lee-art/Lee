@@ -2,35 +2,35 @@
  "binance:BTCUSDT:1d": {
   "score": 1,
   "verdict": "중립",
-  "tv": "중립",
+  "tv": "매수",
   "bar": 1791417600,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": 8,
+  "score": 5,
   "verdict": "중립",
-  "tv": "중립",
+  "tv": "매도",
   "bar": 1791417600,
   "patterns": [
    "이중천장"
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": 15,
+  "score": 20,
   "verdict": "매수",
-  "tv": "매도",
+  "tv": "중립",
   "bar": 1791417600,
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": 7,
-  "verdict": "중립",
-  "tv": "매수",
+  "score": -16,
+  "verdict": "매도",
+  "tv": "매도",
   "bar": 1791417600,
   "patterns": []
  },
  "kr:000660:1d": {
-  "score": -22,
+  "score": -18,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1791417600,
