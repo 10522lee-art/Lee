@@ -215,7 +215,7 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
     } catch (e) { errors.push(`${s.symbol}: ${e.message}`); }
   }
   const kstHour = (new Date().getUTCHours() + 9) % 24, today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-  const daily = kstHour === CFG.dailySummaryHourKST && state._lastSummary !== today;
+  const daily = kstHour >= CFG.dailySummaryHourKST && state._lastSummary !== today; // 예약 실행이 건너뛰어져도 그날 첫 실행에서 보냄
   if (alerts.length) await send(`🔔 <b>신호 변화</b> (${tf})\n\n${alerts.join('\n\n')}`);
   if (trades.length) await send(trades.join('\n'));
   if (fullScan && (daily || forceSummary)) {
