@@ -1,25 +1,25 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 1,
+  "score": 2,
   "verdict": "중립",
-  "tv": "매수",
-  "bar": 1791417600,
+  "tv": "중립",
+  "bar": 1791504000,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": 5,
+  "score": -12,
   "verdict": "중립",
   "tv": "매도",
-  "bar": 1791417600,
+  "bar": 1791504000,
   "patterns": [
    "이중천장"
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": 20,
-  "verdict": "매수",
+  "score": -2,
+  "verdict": "중립",
   "tv": "중립",
-  "bar": 1791417600,
+  "bar": 1791504000,
   "patterns": []
  },
  "kr:005930:1d": {
@@ -37,19 +37,17 @@
   "patterns": []
  },
  "us:NVDA:1d": {
-  "score": 41,
+  "score": 33,
   "verdict": "매수",
   "tv": "매수",
-  "bar": 1791379800,
-  "patterns": [
-   "이중바닥"
-  ]
+  "bar": 1791466200,
+  "patterns": []
  },
  "us:QQQ:1d": {
   "score": 45,
   "verdict": "매수",
   "tv": "매수",
-  "bar": 1791379800,
+  "bar": 1791466200,
   "patterns": [
    "이중바닥"
   ]
@@ -57,7 +55,18 @@
  "_lastSummary": "2026-10-08",
  "_chatId": 8343442590,
  "_paper": {
-  "trades": [],
+  "trades": [
+   {
+    "key": "binance:ETHUSDT:1d",
+    "name": "ETHUSDT",
+    "entry": 2567.24,
+    "exit": 2482.9,
+    "ret": -0.03478476463472002,
+    "inAt": 1791410812,
+    "outAt": 1791511275,
+    "why": "신호 약화 (점수 -18)"
+   }
+  ],
   "positions": {
    "binance:BTCUSDT:1d": {
     "name": "BTCUSDT",
@@ -65,13 +74,6 @@
     "at": 1791410812,
     "bar": 1791244800,
     "stop": 78945.50490280255
-   },
-   "binance:ETHUSDT:1d": {
-    "name": "ETHUSDT",
-    "entry": 2567.24,
-    "at": 1791410812,
-    "bar": 1791244800,
-    "stop": 2405.5105128327286
    },
    "upbit:KRW-XRP:1d": {
     "name": "KRW-XRP",
@@ -96,13 +98,13 @@
    }
   },
   "lastBar": {
-   "binance:BTCUSDT:1d": 1791331200,
-   "binance:ETHUSDT:1d": 1791331200,
-   "upbit:KRW-XRP:1d": 1791331200,
-   "kr:005930:1d": 1791331200,
-   "kr:000660:1d": 1791331200,
-   "us:NVDA:1d": 1791293400,
-   "us:QQQ:1d": 1791293400
+   "binance:BTCUSDT:1d": 1791417600,
+   "binance:ETHUSDT:1d": 1791417600,
+   "upbit:KRW-XRP:1d": 1791417600,
+   "kr:005930:1d": 1791417600,
+   "kr:000660:1d": 1791417600,
+   "us:NVDA:1d": 1791379800,
+   "us:QQQ:1d": 1791379800
   }
  },
  "_offset": 30199083
