@@ -22,6 +22,8 @@ const CITIES = {
   부다페스트: [47.4979, 19.0402, 'Europe/Budapest'], 암스테르담: [52.3676, 4.9041, 'Europe/Amsterdam'], 취리히: [47.3769, 8.5417, 'Europe/Zurich'],
   인터라켄: [46.6863, 7.8632, 'Europe/Zurich'], 피렌체: [43.7696, 11.2558, 'Europe/Rome'], 베네치아: [45.4408, 12.3155, 'Europe/Rome'],
   밀라노: [45.4642, 9.19, 'Europe/Rome'], 리스본: [38.7223, -9.1393, 'Europe/Lisbon'], 니스: [43.7102, 7.262, 'Europe/Paris'],
+  포르투: [41.1579, -8.6291, 'Europe/Lisbon'], 세비야: [37.3891, -5.9845, 'Europe/Madrid'], 그라나다: [37.1773, -3.5986, 'Europe/Madrid'],
+  체르마트: [46.0207, 7.7491, 'Europe/Zurich'],
 };
 
 async function geocode(getJSON, q) {

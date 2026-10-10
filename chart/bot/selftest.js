@@ -88,6 +88,29 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
   ok(/💹 <b>달러<\/b>/.test(out) && /💹 <b>비트코인<\/b>[^\n]*\n⏰ 알림: ≤ 95/.test(out) && /「안녕」 종목을 모르겠어요/.test(out) && state()._alerts[0].symbol === 'BTCUSDT', '별칭·이름만 보내기');
   bot(['/unalert all']);
 
+  // ---------- 여행 비서 ----------
+  const TD = path.join(tmp, 'trip.json');
+  const trip = (now, cmds) => bot(cmds, { TRIP_NOW: now, TRIP_DATA: TD, SCAN_MODE: 'light' });
+  out = trip('2026-10-10T03:00:00Z', ['/trip', '항공권 1,250,000원', '50유로', '/check', '/done 2']);
+  ok(/D-38/.test(out) && /✅ 🚆 <b>항공권<\/b> ₩1,250,000/.test(out) && /💱 €50.00 = <b>₩80,000/.test(out) && /✅ 완료: 사그라다/.test(out), '여행 전: 일정·지출·환산·체크리스트');
+  out = trip('2026-11-19T08:30:00Z', ['커피 3.2', '2인 점심 36유로', '박물관 15유로', '택시 12.5chf', 'NVDA', '/undo', '/budget 300만원']);
+  ok(/☕ <b>커피<\/b> €3.20/.test(out) && /🍽️ <b>2인 점심<\/b> €36.00/.test(out) && /🎟️ <b>박물관/.test(out) && /12.50 CHF/.test(out) && /💹 <b>NVDA/.test(out) && /↩️ 삭제: 🚆 택시/.test(out), '여행 중: 단위 없는 금액·분류·CHF·주식 구분·undo');
+  ok(/Day 3\/20<\/b> · 🍷 <b>포르투/.test(out) && /내일 💃 <b>세비야/.test(out), '현지 아침 브리핑 + 이동 예고');
+  ok(!/Day 3\/20/.test(trip('2026-11-19T15:00:00Z', [])), '아침 브리핑 하루 한 번');
+  out = trip('2026-11-19T21:10:00Z', ['/spent 포르투']);
+  ok(/오늘 정리/.test(out) && /🍷 포르투 지출/.test(out) && /예산 ₩3,000,000/.test(out), '저녁 정리 + 도시별 지출');
+  ok(/오늘 이동: 🍷 포르투 → 💃 <b>세비야/.test(trip('2026-11-20T08:10:00Z', [])), '이동일 아침');
+  out = trip('2026-12-08T02:00:00Z', ['/export']);
+  ok(/여행 끝/.test(out) && /날짜,시각\(한국\),도시/.test(out) && /포르투,커피,커피,3.2,EUR/.test(out), '귀국 후 정리 + CSV');
+  // 암호화: 토큰이 있으면 파일에 평문이 남지 않아야 함
+  {
+    const createTrip = require('./trip.js'), ef = path.join(tmp, 'enc.json'), st = {};
+    const mk = tok => createTrip({ getJSON: null, BR, state: st, esc: x => x, token: tok, sendDoc: null, now: () => Date.parse('2026-11-19T10:00:00Z'), dataFile: ef });
+    await mk('secret-token').text('점심 18유로');
+    const raw = fs.readFileSync(ef, 'utf8');
+    ok(!/점심/.test(raw) && JSON.parse(raw).iv && mk('secret-token')._data().spends[0].text === '점심' && mk('wrong-token')._data().spends.length === 0, '지출 데이터 암호화 저장');
+  }
+
   // ---------- daemon.js (짧게 실행) ----------
   try {
     const t0 = Date.now();
@@ -112,6 +135,10 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
       const o = bot(['달러', '비트코인', '리플', '삼성전자', '엔비디아', '코스피'], { MOCK: '', SCAN_MODE: 'light' });
       ok((o.match(/💹/g) || []).length === 6 && !/❌|NaN|undefined/.test(o), 'LIVE 이름만 보내기 6종', o.replace(/\n/g, ' / ').slice(0, 700));
     } catch (e) { ok(false, 'LIVE 이름만 보내기', e.message); }
+    try {
+      const o = bot(['/today', '50유로', '/trip'], { MOCK: '', SCAN_MODE: 'light', TRIP_NOW: '2026-11-25T10:00:00Z', TRIP_DATA: path.join(tmp, 'trip-live.json') });
+      ok(/⛪ <b>바르셀로나<\/b>/.test(o) && /오늘 /.test(o) && /💱 €50.00 = <b>₩[\d,]+/.test(o) && !/⚠ fetch|NaN|undefined/.test(o), 'LIVE 여행 날씨·환율', o.replace(/\n/g, ' / ').slice(0, 600));
+    } catch (e) { ok(false, 'LIVE 여행', e.message); }
     // 실제 데이터로 봇 명령 처리 (MOCK 끔)
     const wl = JSON.parse(fs.readFileSync(WL, 'utf8')); delete wl.brief; fs.writeFileSync(WL, JSON.stringify(wl));
     try {
