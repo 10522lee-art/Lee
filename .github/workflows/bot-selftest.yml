@@ -1,0 +1,19 @@
+name: 봇 자체 테스트
+on:
+  pull_request:
+    paths: ['chart/**', '.github/workflows/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 오프라인 테스트 + 실제 API 확인 (텔레그램 전송 없음)
+        env:
+          LIVE: '1'
+        run: node chart/bot/selftest.js
