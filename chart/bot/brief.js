@@ -62,10 +62,14 @@ function weatherText(city, w) {
 // 전일 대비 등락 (Yahoo 일봉)
 async function yahooChange(getJSON, ticker) {
   const j = await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`);
-  const r = j.chart.result[0], closes = r.indicators.quote[0].close.filter(x => x != null);
-  const price = r.meta.regularMarketPrice ?? closes.at(-1);
-  // 오늘 봉이 이미 있으면 그 전날 종가, 없으면 마지막 종가가 전일 종가
-  const prev = closes.length >= 2 && Math.abs(closes.at(-1) - price) < 1e-9 ? closes.at(-2) : closes.at(-1);
+  const r = j.chart.result[0], m = r.meta, off = m.gmtoffset || 0;
+  const day = t => new Date((t + off) * 1000).toISOString().slice(0, 10);
+  // 날짜별 마지막 종가 (야후는 같은 날짜 봉을 두 번 주기도 함)
+  const byDay = new Map();
+  r.timestamp.forEach((t, i) => { const c = r.indicators.quote[0].close[i]; if (c != null) byDay.set(day(t), c); });
+  const price = m.regularMarketPrice ?? [...byDay.values()].at(-1);
+  const today = day(m.regularMarketTime || r.timestamp.at(-1));
+  const prev = [...byDay].filter(([d]) => d < today).at(-1)?.[1];
   return { price, chg: prev ? (price / prev - 1) * 100 : null };
 }
 async function binanceChange(getJSON, sym) {

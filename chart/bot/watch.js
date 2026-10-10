@@ -12,7 +12,7 @@ function decode(s) {
 function htmlToLines(html) {
   let s = String(html)
     .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<(script|style|noscript|svg|template|iframe|head)\b[\s\S]*?<\/\1\s*>/gi, ' ')
+    .replace(/<(script|style|noscript|svg|template|iframe|title)\b[\s\S]*?<\/\1\s*>/gi, ' ')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/?(p|div|li|ul|ol|tr|td|th|table|h[1-6]|section|article|header|footer|nav|main|aside|dd|dt|dl|option|button|a|span|label|form|blockquote|pre|figure|figcaption)\b[^>]*>/gi, '\n')
     .replace(/<[^>]+>/g, ' ');

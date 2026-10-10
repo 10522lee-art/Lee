@@ -84,11 +84,12 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
     await tryIt('LIVE 업비트 현재가', async () => (await getJSON('https://api.upbit.com/v1/ticker?markets=KRW-XRP'))[0].trade_price, v => v > 0);
     for (const t of ['NVDA', '005930.KS', 'USDKRW=X', 'EURKRW=X'])
       await tryIt(`LIVE 야후 현재가 ${t}`, async () => (await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(t)}?interval=1d&range=5d`)).chart.result[0].meta.regularMarketPrice, v => v > 0);
-    await tryIt('LIVE 시세 묶음', () => BR.markets(getJSON), rows => rows.every(r => !r.err && r.price > 0));
+    await tryIt('LIVE 시세 묶음', () => BR.markets(getJSON), rows => rows.every(r => !r.err && r.price > 0) && rows.some(r => r.t && Math.abs(r.chg) > 0.001));
     await tryIt('LIVE 지오코딩 Interlaken', () => BR.geocode(getJSON, 'Interlaken'), c => Math.abs(c.lat - 46.7) < 0.3);
     await tryIt('LIVE 날씨', async () => BR.weatherText({ name: '서울' }, await BR.weather(getJSON, await BR.geocode(getJSON, '서울'))), t => /오늘/.test(t) && !/NaN|undefined/.test(t));
-    await tryIt('LIVE 웹페이지 읽기', () => WT.fetchPage('https://example.com'), p => p.lines.some(l => /Example Domain/.test(l)));
+    await tryIt('LIVE 웹페이지 읽기', () => WT.fetchPage('https://example.com'), p => p.title === 'Example Domain' && p.lines.some(l => /Example Domain/.test(l)) && p.lines.some(l => /documentation/.test(l)));
     // 실제 데이터로 봇 명령 처리 (MOCK 끔)
+    const wl = JSON.parse(fs.readFileSync(WL, 'utf8')); delete wl.brief; fs.writeFileSync(WL, JSON.stringify(wl));
     try {
       const o = bot(['/alert BTCUSDT +50%', '/alert USDKRW -20% 테스트', '/weather', '/brief', '/watch https://example.com Example'], { MOCK: '' });
       const s2 = state();
