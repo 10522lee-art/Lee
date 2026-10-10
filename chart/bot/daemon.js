@@ -37,7 +37,8 @@ function commit(final) {
     try { execSync('git diff --cached --quiet', { stdio: 'pipe' }); return; } catch { } // 변경 있음
     execSync('git commit -q -m "chart-bot: update state [skip ci]"', { stdio: 'pipe' });
     for (let t = 0; t < 3; t++) {
-      try { execSync('git pull --rebase -q && git push -q', { stdio: 'pipe' }); log(`상태 커밋${final ? ' (마지막)' : ''}`); return; }
+      // 상태 파일은 봇만 쓰므로 충돌 나면 지금 봇의 최신 상태가 이김 (-X theirs = 다시 얹는 쪽 = 이 봇의 커밋)
+      try { execSync('git pull --rebase -X theirs -q && git push -q', { stdio: 'pipe' }); log(`상태 커밋${final ? ' (마지막)' : ''}`); return; }
       catch (e) { try { execSync('git rebase --abort', { stdio: 'pipe' }); } catch { } log('푸시 실패, 재시도', String(e.stderr || e.message).slice(0, 300)); }
     }
   } catch (e) { log('커밋 실패', String(e.stderr || e.message).slice(0, 300)); }
@@ -72,6 +73,8 @@ function nextFullAt(now) {
 
 (async () => {
   log(`실시간 모드 시작 — ${((END - START) / 60e3).toFixed(0)}분 동안 실행`);
+  // 이 실행이 체크아웃한 뒤 앞 실행이 마지막 상태를 저장했을 수 있으므로 먼저 최신으로
+  if (!process.env.NO_GIT && !process.env.DRY_RUN) { try { execSync('git pull --rebase -X theirs -q', { stdio: 'pipe' }); log('최신 상태 받음'); } catch (e) { log('pull 실패', String(e.stderr || e.message).slice(0, 200)); } }
   scan('full', '시작');
   commit();
   let nextLight = Date.now() + LIGHT_MS, nextFull = nextFullAt(Date.now()), nextCommit = Date.now() + COMMIT_MS;
