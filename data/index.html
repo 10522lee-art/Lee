@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>데이터 모아보기</title>
+<meta name="theme-color" content="#f7f3ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+<style>
+:root{--bg:#f7f3ec;--card:#fffdf9;--ink:#1d1b18;--sub:#857d72;--line:#e8e1d5;--accent:#e2572b;--up:#d23c32;--down:#2f62c9;--flat:#857d72;--spark:#3f63c7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141210;--card:#1e1b18;--ink:#f1ece4;--sub:#a39a8e;--line:#332e28;--accent:#ff7a4d;--up:#ff6b5e;--down:#6f9bff;--flat:#a39a8e;--spark:#8aa5ff}}
+:root[data-theme="dark"]{--bg:#141210;--card:#1e1b18;--ink:#f1ece4;--sub:#a39a8e;--line:#332e28;--accent:#ff7a4d;--up:#ff6b5e;--down:#6f9bff;--flat:#a39a8e;--spark:#8aa5ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR",sans-serif;line-height:1.45}
+main{max-width:1180px;margin:auto;padding:12px 16px 60px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0 4px}
+h1{margin:0;font-size:28px;letter-spacing:-.6px}
+.meta{color:var(--sub);font-size:13px}
+button{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:10px 0;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:none;font-size:13px;color:var(--sub);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;background:var(--card)}
+section{margin-top:22px;scroll-margin-top:56px}
+h2{font-size:18px;margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
+h2 small{font-size:12px;color:var(--sub);font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0;position:relative}
+.tile .n{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.tile .c{font-size:12px;font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--flat)}
+.spark{display:block;width:100%;height:34px;margin-top:4px;overflow:visible}
+.spark path{fill:none;stroke:var(--spark);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--sub);font-weight:500;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+ol,ul{margin:0;padding-left:20px;font-size:14px}
+li{margin:5px 0}
+a{color:var(--ink)}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--sub);margin-left:4px}
+.err{color:var(--sub);font-size:13px;padding:8px 0}
+.load{color:var(--sub);font-size:13px}
+.big{font-size:34px;font-weight:800;letter-spacing:-1px}
+.gauge{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--down),var(--line) 50%,var(--up));position:relative;margin:10px 0 4px}
+.gauge i{position:absolute;top:-4px;width:4px;height:16px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:4px 8px;border-radius:6px;z-index:20;display:none;white-space:nowrap}
+footer{margin-top:30px;color:var(--sub);font-size:12px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div><h1>📡 데이터 모아보기</h1><div class="meta" id="stamp">불러오는 중…</div></div>
+  <div style="display:flex;gap:6px"><button id="reload">↻ 새로고침</button><button id="auto">자동 1분: 켜짐</button></div>
+</header>
+<nav id="nav"></nav>
+<div id="root"></div>
+<footer>무료 공개 API를 브라우저에서 바로 불러옵니다: Yahoo Finance(프록시 경유), Binance, Upbit, CoinGecko, alternative.me, open.er-api.com, Open-Meteo, USGS, Hacker News, Wikimedia, wheretheiss.at, 이 저장소의 봇 상태(state.json). 한 곳이 막혀도 나머지는 그대로 보여요. 투자 판단의 근거가 아니라 참고용입니다.</footer>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+// ---------- 공통 ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const nf = (n, d) => n == null || !isFinite(n) ? '–' : Number(n).toLocaleString('ko-KR', { minimumFractionDigits: d ?? (Math.abs(n) >= 1000 ? 0 : Math.abs(n) >= 1 ? 2 : 4), maximumFractionDigits: d ?? (Math.abs(n) >= 1000 ? 0 : Math.abs(n) >= 1 ? 2 : 4) });
+const big = n => n >= 1e12 ? (n / 1e12).toFixed(2) + '조' : n >= 1e8 ? (n / 1e8).toFixed(1) + '억' : n >= 1e4 ? (n / 1e4).toFixed(0) + '만' : nf(n, 0);
+const usdBig = n => n >= 1e12 ? '$' + (n / 1e12).toFixed(2) + 'T' : n >= 1e9 ? '$' + (n / 1e9).toFixed(1) + 'B' : n >= 1e6 ? '$' + (n / 1e6).toFixed(1) + 'M' : '$' + nf(n, 0);
+const pct = p => p == null || !isFinite(p) ? '<span class="flat">–</span>' : `<span class="${p > 0 ? 'up' : p < 0 ? 'down' : 'flat'}">${p > 0 ? '▲' : p < 0 ? '▼' : '■'} ${Math.abs(p).toFixed(2)}%</span>`;
+const md = t => { const d = new Date(t * 1000); return `${d.getMonth() + 1}/${d.getDate()}`; };
+
+async function getJSON(url, ms = 12000) {
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+  try { const r = await fetch(url, { signal: ac.signal, cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+// Yahoo는 CORS를 막아서 공개 프록시를 차례로 시도하고, 성공한 프록시를 기억해 다음부터 먼저 씀
+const PROXIES = [u => 'https://corsproxy.io/?url=' + encodeURIComponent(u), u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u), u => u];
+let goodProxy = 0;
+async function viaProxy(url) {
+  let err;
+  for (let k = 0; k < PROXIES.length; k++) {
+    const i = (goodProxy + k) % PROXIES.length;
+    try { const j = await getJSON(PROXIES[i](url)); goodProxy = i; return j; } catch (e) { err = e; }
+  }
+  throw err;
+}
+// 여러 종목을 한 번에: { 심볼: { price, prev, closes[], times[] } }
+async function yahoo(symbols, range = '1mo') {
+  const out = {};
+  for (let i = 0; i < symbols.length; i += 20) {
+    const chunk = symbols.slice(i, i + 20);
+    try {
+      const j = await viaProxy(`https://query1.finance.yahoo.com/v7/finance/spark?symbols=${chunk.map(encodeURIComponent).join(',')}&range=${range}&interval=1d`);
+      for (const r of j.spark?.result || []) {
+        const x = r.response?.[0]; if (!x) continue;
+        const q = x.indicators?.quote?.[0]?.close || [];
+        const rows = (x.timestamp || []).map((t, k) => [t, q[k]]).filter(p => p[1] != null);
+        out[r.symbol] = { price: x.meta?.regularMarketPrice ?? rows.at(-1)?.[1], prev: x.meta?.chartPreviousClose, closes: rows.map(p => p[1]), times: rows.map(p => p[0]), cur: x.meta?.currency };
+      }
+    } catch { /* 아래에서 종목별로 다시 시도 */ }
+    await Promise.all(chunk.filter(s => !out[s]).map(async s => {
+      try {
+        const j = await viaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(s)}?range=${range}&interval=1d`);
+        const r = j.chart?.result?.[0], q = r?.indicators?.quote?.[0]?.close || [];
+        const rows = (r?.timestamp || []).map((t, k) => [t, q[k]]).filter(p => p[1] != null);
+        if (rows.length) out[s] = { price: r.meta?.regularMarketPrice ?? rows.at(-1)[1], prev: rows.length > 1 ? rows.at(-2)[1] : r.meta?.chartPreviousClose, closes: rows.map(p => p[1]), times: rows.map(p => p[0]), cur: r.meta?.currency };
+      } catch {}
+    }));
+  }
+  // 전일 대비: spark의 chartPreviousClose는 범위 시작 기준이라 마지막 두 종가로 다시 계산
+  for (const v of Object.values(out)) if (v.closes.length > 1) v.prev = v.closes.at(-2);
+  return out;
+}
+
+// 스파크라인: 단일 계열, 2px 선, 마우스/터치 위치의 날짜·값 툴팁
+let sparkId = 0;
+const SPARKS = {};
+function spark(vals, times, fmt = nf) {
+  if (!vals || vals.length < 2) return '';
+  const id = 's' + (++sparkId), W = 100, H = 30, lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * W, H - (v - lo) / span * H]);
+  SPARKS[id] = { vals, times, fmt, pts };
+  const d = 'M' + pts.map(p => p[0].toFixed(2) + ' ' + p[1].toFixed(2)).join('L');
+  return `<svg class="spark" data-spark="${id}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="최근 ${vals.length}개 값 추이, 최저 ${fmt(lo)} 최고 ${fmt(hi)}"><path d="${d}" vector-effect="non-scaling-stroke"/></svg>`;
+}
+const tip = $('#tip');
+document.addEventListener('pointermove', e => {
+  const svg = e.target.closest?.('svg[data-spark]');
+  if (!svg) { tip.style.display = 'none'; return; }
+  const s = SPARKS[svg.dataset.spark], b = svg.getBoundingClientRect();
+  const i = Math.max(0, Math.min(s.vals.length - 1, Math.round((e.clientX - b.left) / b.width * (s.vals.length - 1))));
+  tip.textContent = `${s.times?.[i] ? md(s.times[i]) + ' · ' : ''}${s.fmt(s.vals[i])}`;
+  tip.style.display = 'block';
+  tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, e.clientX + 10) + 'px';
+  tip.style.top = (e.clientY - 34) + 'px';
+});
+
+function tile(name, value, chg, sp, extra = '') {
+  return `<div class="tile"><div class="n" title="${esc(name)}">${esc(name)}</div><div class="v">${value}</div><div class="c">${chg}${extra}</div>${sp || ''}</div>`;
+}
+const yTile = (name, d, fmt = nf, prefix = '') => d ? tile(name, prefix + fmt(d.price), pct(d.prev ? (d.price / d.prev - 1) * 100 : null), spark(d.closes, d.times, fmt)) : tile(name, '–', '<span class="flat">불러오지 못함</span>');
+
+// ---------- 섹션 정의 ----------
+const SECTIONS = [];
+const sec = (id, title, note, load) => SECTIONS.push({ id, title, note, load });
+const CTX = {}; // 섹션끼리 공유 (환율 등)
+
+const INDICES = [['^KS11', '코스피'], ['^KQ11', '코스닥'], ['^GSPC', 'S&P 500'], ['^IXIC', '나스닥'], ['^DJI', '다우'], ['^RUT', '러셀 2000'], ['^SOX', '필라델피아 반도체'], ['^N225', '닛케이 225'], ['^HSI', '항셍'], ['000001.SS', '상하이 종합'], ['^TWII', '대만 가권'], ['^BSESN', '인도 센섹스'], ['^STOXX50E', '유로스톡스 50'], ['^GDAXI', '독일 DAX'], ['^FTSE', '영국 FTSE 100'], ['^FCHI', '프랑스 CAC 40'], ['^VIX', 'VIX 공포지수']];
+const MACRO = [['GC=F', '금 ($/oz)'], ['SI=F', '은 ($/oz)'], ['CL=F', 'WTI 원유'], ['BZ=F', '브렌트유'], ['NG=F', '천연가스'], ['HG=F', '구리'], ['ZC=F', '옥수수'], ['ZW=F', '밀'], ['^TNX', '미 10년물 금리'], ['^FVX', '미 5년물 금리'], ['^IRX', '미 13주물 금리'], ['DX-Y.NYB', '달러 인덱스'], ['KRW=X', '원/달러'], ['JPYKRW=X', '원/엔']];
+const STOCKS_US = [['AAPL', '애플'], ['MSFT', '마이크로소프트'], ['NVDA', '엔비디아'], ['GOOGL', '알파벳'], ['AMZN', '아마존'], ['META', '메타'], ['TSLA', '테슬라'], ['AVGO', '브로드컴'], ['TSM', 'TSMC'], ['AMD', 'AMD'], ['NFLX', '넷플릭스'], ['PLTR', '팔란티어'], ['BRK-B', '버크셔'], ['JPM', 'JP모건'], ['SPY', 'SPY'], ['QQQ', 'QQQ']];
+const STOCKS_KR = [['005930.KS', '삼성전자'], ['000660.KS', 'SK하이닉스'], ['373220.KS', 'LG에너지솔루션'], ['207940.KS', '삼성바이오로직스'], ['005380.KS', '현대차'], ['000270.KS', '기아'], ['068270.KS', '셀트리온'], ['035420.KS', 'NAVER'], ['035720.KS', '카카오'], ['105560.KS', 'KB금융'], ['005490.KS', 'POSCO홀딩스'], ['012450.KS', '한화에어로스페이스'], ['247540.KQ', '에코프로비엠'], ['196170.KQ', '알테오젠']];
+
+sec('idx', '🌏 세계 지수', '최근 1개월 · 전일 대비', async () => {
+  const d = await yahoo(INDICES.map(x => x[0]));
+  return `<div class="grid">${INDICES.map(([s, n]) => yTile(n, d[s])).join('')}</div>`;
+});
+
+sec('macro', '🛢️ 원자재 · 금리 · 달러', '최근 1개월', async () => {
+  const d = await yahoo(MACRO.map(x => x[0]));
+  return `<div class="grid">${MACRO.map(([s, n]) => yTile(n, d[s], s.startsWith('^') ? v => nf(v, 3) + '%' : s === 'JPYKRW=X' ? v => nf(v * 100, 2) + '/100엔' : nf)).join('')}</div>`;
+});
+
+sec('fx', '💱 환율', '1단위 = 원 · open.er-api.com (하루 1번 갱신)', async () => {
+  const j = await getJSON('https://open.er-api.com/v6/latest/USD');
+  const r = j.rates, krw = r.KRW;
+  CTX.usdkrw = krw;
+  const list = [['USD', '미국 달러', 1], ['EUR', '유로', 1], ['JPY', '일본 엔', 100], ['CNY', '중국 위안', 1], ['GBP', '영국 파운드', 1], ['CHF', '스위스 프랑', 1], ['HKD', '홍콩 달러', 1], ['TWD', '대만 달러', 1], ['SGD', '싱가포르 달러', 1], ['AUD', '호주 달러', 1], ['CAD', '캐나다 달러', 1], ['THB', '태국 바트', 1], ['VND', '베트남 동', 100], ['PHP', '필리핀 페소', 1], ['IDR', '인도네시아 루피아', 100], ['INR', '인도 루피', 1], ['MXN', '멕시코 페소', 1], ['BRL', '브라질 헤알', 1], ['TRY', '튀르키예 리라', 1], ['RUB', '러시아 루블', 1]];
+  const upd = new Date(j.time_last_update_unix * 1000).toLocaleString('ko-KR');
+  return `<div class="grid">${list.filter(x => r[x[0]]).map(([c, n, u]) => tile(`${n} ${u > 1 ? u + ' ' : ''}${c}`, '₩' + nf(krw / r[c] * u, 2), `<span class="flat">1₩ = ${nf(r[c] / krw, 5)} ${c}</span>`)).join('')}</div><div class="meta" style="margin-top:6px">기준 ${esc(upd)}</div>`;
+});
+
+sec('crypto', '🪙 코인', 'Binance 24시간 · USDT 거래대금 상위', async () => {
+  const [tick, glob] = await Promise.all([getJSON('https://data-api.binance.vision/api/v3/ticker/24hr'), getJSON('https://api.coingecko.com/api/v3/global').catch(() => null)]);
+  const STABLE = /^(USDC|FDUSD|TUSD|BUSD|DAI|USDP|EUR|AEUR|USDE|XUSD|PAXG|WBTC|USD1|BFUSD)USDT$/;
+  const usdt = tick.filter(t => t.symbol.endsWith('USDT') && !STABLE.test(t.symbol) && +t.quoteVolume > 0 && +t.count > 0);
+  CTX.binance = Object.fromEntries(usdt.map(t => [t.symbol, +t.lastPrice]));
+  const top = [...usdt].sort((a, b) => b.quoteVolume - a.quoteVolume).slice(0, 24);
+  const liquid = usdt.filter(t => +t.quoteVolume > 5e6);
+  const gain = [...liquid].sort((a, b) => b.priceChangePercent - a.priceChangePercent).slice(0, 8);
+  const lose = [...liquid].sort((a, b) => a.priceChangePercent - b.priceChangePercent).slice(0, 8);
+  const row = t => `<tr><td>${esc(t.symbol.replace(/USDT$/, ''))}</td><td>$${nf(+t.lastPrice)}</td><td>${pct(+t.priceChangePercent)}</td><td>${usdBig(+t.quoteVolume)}</td></tr>`;
+  const g = glob?.data;
+  const head = g ? `<div class="grid" style="margin-bottom:10px">${tile('전체 시가총액', usdBig(g.total_market_cap.usd), pct(g.market_cap_change_percentage_24h_usd))}${tile('24시간 거래대금', usdBig(g.total_volume.usd), '<span class="flat">전체 코인</span>')}${tile('비트코인 점유율', nf(g.market_cap_percentage.btc, 1) + '%', `<span class="flat">이더 ${nf(g.market_cap_percentage.eth, 1)}%</span>`)}${tile('거래 중인 코인', nf(g.active_cryptocurrencies, 0) + '개', `<span class="flat">거래소 ${nf(g.markets, 0)}곳</span>`)}</div>` : '';
+  const mover = (title, rows) => `<div class="card"><b>${title}</b> <small class="meta">거래대금 500만$ 이상</small><table><tbody>${rows.map(row).join('')}</tbody></table></div>`;
+  return `${head}<div class="cols"><div class="card scroll"><table><thead><tr><th>코인</th><th>가격</th><th>24h</th><th>거래대금</th></tr></thead><tbody>${top.map(row).join('')}</tbody></table></div><div style="display:grid;gap:10px">${mover('🚀 상승 상위', gain)}${mover('📉 하락 상위', lose)}</div></div>`;
+});
+
+sec('upbit', '🇰🇷 업비트 · 김치 프리미엄', '원화 마켓 거래대금 상위 · 김프 = 업비트 원화가 ÷ (바이낸스 달러가 × 환율)', async () => {
+  const mk = (await getJSON('https://api.upbit.com/v1/market/all')).filter(m => m.market.startsWith('KRW-'));
+  const names = Object.fromEntries(mk.map(m => [m.market, m.korean_name]));
+  let tick = [];
+  for (let i = 0; i < mk.length; i += 100) tick = tick.concat(await getJSON('https://api.upbit.com/v1/ticker?markets=' + mk.slice(i, i + 100).map(m => m.market).join(',')));
+  const top = tick.sort((a, b) => b.acc_trade_price_24h - a.acc_trade_price_24h).slice(0, 20);
+  for (let k = 0; k < 20 && (!CTX.usdkrw || !CTX.binance); k++) await new Promise(r => setTimeout(r, 300)); // 환율·바이낸스 섹션 기다림
+  const kimp = t => { const b = CTX.binance?.[t.market.slice(4) + 'USDT']; return b && CTX.usdkrw ? (t.trade_price / (b * CTX.usdkrw) - 1) * 100 : null; };
+  const kp = v => v == null ? '–' : `<span class="${v > 0 ? 'up' : v < 0 ? 'down' : 'flat'}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+  const btc = tick.find(t => t.market === 'KRW-BTC');
+  const avg = top.map(kimp).filter(v => v != null);
+  const head = `<div class="grid" style="margin-bottom:10px">${btc ? tile('비트코인 (업비트)', '₩' + nf(btc.trade_price, 0), pct(btc.signed_change_rate * 100), '', ` · 김프 ${kp(kimp(btc))}`) : ''}${avg.length ? tile('상위 코인 평균 김프', kp(avg.reduce((a, b) => a + b, 0) / avg.length), `<span class="flat">${avg.length}개 코인</span>`) : ''}${tile('원화 마켓 코인 수', mk.length + '개', `<span class="flat">24h 합계 ₩${big(tick.reduce((a, t) => a + t.acc_trade_price_24h, 0))}</span>`)}</div>`;
+  return `${head}<div class="card scroll"><table><thead><tr><th>코인</th><th>현재가</th><th>전일 대비</th><th>김프</th><th>24h 거래대금</th></tr></thead><tbody>${top.map(t => `<tr><td>${esc(names[t.market] || t.market)} <span class="tag">${esc(t.market.slice(4))}</span></td><td>₩${nf(t.trade_price)}</td><td>${pct(t.signed_change_rate * 100)}</td><td>${kp(kimp(t))}</td><td>₩${big(t.acc_trade_price_24h)}</td></tr>`).join('')}</tbody></table></div>`;
+});
+
+sec('fng', '😱 코인 공포·탐욕 지수', 'alternative.me · 0 극도의 공포 ~ 100 극도의 탐욕', async () => {
+  const j = await getJSON('https://api.alternative.me/fng/?limit=90');
+  const d = j.data.slice().reverse(), now = d.at(-1);
+  const KO = { 'Extreme Fear': '극도의 공포', Fear: '공포', Neutral: '중립', Greed: '탐욕', 'Extreme Greed': '극도의 탐욕' };
+  const at = n => d.at(-1 - n);
+  return `<div class="cols"><div class="card"><div class="big">${now.value} <span style="font-size:18px">${KO[now.value_classification] || esc(now.value_classification)}</span></div><div class="gauge" aria-hidden="true"><i style="left:${now.value}%"></i></div><div class="meta">어제 ${at(1)?.value ?? '–'} · 1주 전 ${at(7)?.value ?? '–'} · 1달 전 ${at(30)?.value ?? '–'}</div></div><div class="card"><div class="meta">최근 90일</div>${spark(d.map(x => +x.value), d.map(x => +x.timestamp), v => v + '점').replace('class="spark"', 'class="spark" style="height:90px"')}</div></div>`;
+});
+
+// 관심종목: 봇의 watchlist + state.json (같은 사이트에 있으면 상대경로, 아니면 GitHub raw)
+async function repoFile(path) {
+  try { return await getJSON('../' + path); } catch { return getJSON('https://raw.githubusercontent.com/10522lee-art/Lee/master/' + path); }
+}
+sec('watch', '⭐ 내 관심종목 · 봇 신호', '봇 점수(−100~100)와 TradingView 등급 · chart/bot/state.json', async () => {
+  const [wl, st] = await Promise.all([repoFile('chart/bot/watchlist.json'), repoFile('chart/bot/state.json')]);
+  CTX.state = st;
+  const ys = wl.symbols.map(s => s.src === 'kr' ? s.symbol + '.KS' : s.src === 'us' ? s.symbol : s.src === 'binance' ? s.symbol.replace(/USDT$/, '-USD') : s.symbol.replace(/^KRW-(.+)$/, '$1-KRW'));
+  const px = await yahoo(ys);
+  const rows = wl.symbols.map((s, i) => {
+    const sig = st[`${s.src}:${s.symbol}:${wl.interval}`] || {}, d = px[ys[i]];
+    const cls = sig.score > 0 ? 'up' : sig.score < 0 ? 'down' : 'flat';
+    return tile(s.name || s.symbol, d ? nf(d.price) : '–', `${d ? pct(d.prev ? (d.price / d.prev - 1) * 100 : null) : ''}<br><span class="${cls}">점수 ${sig.score ?? '–'} · ${esc(sig.verdict || '–')}</span> <span class="tag">TV ${esc(sig.tv || '–')}</span>${(sig.patterns || []).map(p => `<span class="tag">${esc(p)}</span>`).join('')}`, d ? spark(d.closes, d.times) : '');
+  });
+  return `<div class="grid">${rows.join('')}</div><div class="meta" style="margin-top:6px">봇 마지막 요약: ${esc(st._lastSummary || '–')}</div>`;
+});
+
+sec('paper', '🧪 봇 모의매매', '점수 기반 가상 매매 · 실제 돈 아님', async () => {
+  for (let k = 0; k < 40 && !CTX.state; k++) await new Promise(r => setTimeout(r, 300));
+  const p = CTX.state?._paper;
+  if (!p) return '<div class="err">모의매매 기록이 없어요</div>';
+  const trades = p.trades || [], pos = Object.values(p.positions || {});
+  const wins = trades.filter(t => t.ret > 0).length, tot = trades.reduce((a, t) => a * (1 + t.ret), 1) - 1;
+  const dt = s => new Date(s * 1000).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
+  return `<div class="grid" style="margin-bottom:10px">${tile('보유 중', pos.length + '개', '<span class="flat">가상 포지션</span>')}${tile('끝난 거래', trades.length + '건', `<span class="flat">승률 ${trades.length ? Math.round(wins / trades.length * 100) : 0}%</span>`)}${tile('누적 수익률', pct(tot * 100), '<span class="flat">복리 기준</span>')}</div>
+  <div class="cols"><div class="card scroll"><b>보유 포지션</b><table><thead><tr><th>종목</th><th>진입가</th><th>손절가</th><th>진입일</th></tr></thead><tbody>${pos.map(x => `<tr><td>${esc(x.name)}</td><td>${nf(x.entry)}</td><td>${nf(x.stop)}</td><td>${dt(x.at)}</td></tr>`).join('') || '<tr><td colspan="4" class="flat">없음</td></tr>'}</tbody></table></div>
+  <div class="card scroll"><b>최근 거래</b><table><thead><tr><th>종목</th><th>수익률</th><th>청산일</th><th>이유</th></tr></thead><tbody>${trades.slice(-10).reverse().map(t => `<tr><td>${esc(t.name)}</td><td>${pct(t.ret * 100)}</td><td>${dt(t.outAt)}</td><td style="text-align:left;white-space:normal">${esc(t.why)}</td></tr>`).join('') || '<tr><td colspan="4" class="flat">없음</td></tr>'}</tbody></table></div></div>`;
+});
+
+sec('us', '🇺🇸 미국 대형주', '최근 1개월', async () => {
+  const d = await yahoo(STOCKS_US.map(x => x[0]));
+  return `<div class="grid">${STOCKS_US.map(([s, n]) => yTile(`${n} · ${s}`, d[s], nf, '$')).join('')}</div>`;
+});
+sec('kr', '🇰🇷 한국 대형주', '최근 1개월', async () => {
+  const d = await yahoo(STOCKS_KR.map(x => x[0]));
+  return `<div class="grid">${STOCKS_KR.map(([s, n]) => yTile(n, d[s], v => nf(v, 0), '₩')).join('')}</div>`;
+});
+
+// 날씨: 서울 + 여행 도시들 (Open-Meteo는 좌표 여러 개를 한 번에 받음)
+const CITIES = [['서울', 37.57, 126.98, 'Asia/Seoul'], ['부산', 35.18, 129.08, 'Asia/Seoul'], ['제주', 33.5, 126.53, 'Asia/Seoul'], ['도쿄', 35.68, 139.69, 'Asia/Tokyo'], ['뉴욕', 40.71, -74.01, 'America/New_York'], ['런던', 51.51, -0.13, 'Europe/London'], ['포르투', 41.15, -8.61, 'Europe/Lisbon'], ['세비야', 37.39, -5.98, 'Europe/Madrid'], ['그라나다', 37.18, -3.6, 'Europe/Madrid'], ['바르셀로나', 41.39, 2.17, 'Europe/Madrid'], ['로마', 41.9, 12.5, 'Europe/Rome'], ['피렌체', 43.77, 11.26, 'Europe/Rome'], ['체르마트', 46.02, 7.75, 'Europe/Zurich'], ['인터라켄', 46.69, 7.86, 'Europe/Zurich']];
+const WMO = c => c === 0 ? ['☀️', '맑음'] : c <= 2 ? ['🌤️', '구름 조금'] : c === 3 ? ['☁️', '흐림'] : c <= 48 ? ['🌫️', '안개'] : c <= 57 ? ['🌦️', '이슬비'] : c <= 67 ? ['🌧️', '비'] : c <= 77 ? ['🌨️', '눈'] : c <= 82 ? ['🌧️', '소나기'] : c <= 86 ? ['🌨️', '눈보라'] : ['⛈️', '뇌우'];
+sec('weather', '🌤️ 날씨', '서울·국내·여행 도시 · Open-Meteo', async () => {
+  const q = k => CITIES.map(c => c[k]).join(',');
+  let j = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${q(1)}&longitude=${q(2)}&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1`);
+  if (!Array.isArray(j)) j = [j];
+  return `<div class="grid">${j.map((w, i) => { const [ic, tx] = WMO(w.current.weather_code), lt = new Date().toLocaleTimeString('ko-KR', { timeZone: CITIES[i][3], hour: '2-digit', minute: '2-digit' });
+    return tile(`${CITIES[i][0]} · ${lt}`, `${ic} ${Math.round(w.current.temperature_2m)}°`, `<span class="flat">${tx} · 체감 ${Math.round(w.current.apparent_temperature)}° · 최고 ${Math.round(w.daily.temperature_2m_max[0])}° 최저 ${Math.round(w.daily.temperature_2m_min[0])}°<br>강수 ${w.daily.precipitation_probability_max[0] ?? '–'}% · 습도 ${w.current.relative_humidity_2m}% · 바람 ${Math.round(w.current.wind_speed_10m)}km/h</span>`); }).join('')}</div>`;
+});
+
+sec('air', '😷 미세먼지', 'PM10 · PM2.5 (㎍/㎥) · 국내 기준 등급 · Open-Meteo 대기질', async () => {
+  const K = CITIES.slice(0, 4);
+  let j = await getJSON(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${K.map(c => c[1]).join(',')}&longitude=${K.map(c => c[2]).join(',')}&current=pm10,pm2_5,ozone,uv_index&timezone=auto`);
+  if (!Array.isArray(j)) j = [j];
+  const g10 = v => v <= 30 ? '😀 좋음' : v <= 80 ? '🙂 보통' : v <= 150 ? '😷 나쁨' : '🚨 매우 나쁨';
+  const g25 = v => v <= 15 ? '😀 좋음' : v <= 35 ? '🙂 보통' : v <= 75 ? '😷 나쁨' : '🚨 매우 나쁨';
+  return `<div class="grid">${j.map((a, i) => tile(K[i][0], `${Math.round(a.current.pm2_5)} <small style="font-size:12px;font-weight:400">초미세</small>`, `<span class="flat">초미세 ${g25(a.current.pm2_5)}<br>미세 ${Math.round(a.current.pm10)} ${g10(a.current.pm10)}<br>자외선 ${a.current.uv_index ?? '–'}</span>`)).join('')}</div>`;
+});
+
+sec('quake', '🌋 지진', '최근 24시간 규모 4.5 이상 · USGS', async () => {
+  const j = await getJSON('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_day.geojson');
+  const f = j.features.sort((a, b) => b.properties.mag - a.properties.mag);
+  const ago = t => { const m = Math.round((Date.now() - t) / 6e4); return m < 60 ? m + '분 전' : Math.round(m / 60) + '시간 전'; };
+  return `<div class="card scroll"><div class="meta">${f.length}건 · 최대 규모 ${f[0] ? f[0].properties.mag.toFixed(1) : '–'}</div><table><thead><tr><th>위치</th><th>규모</th><th>깊이</th><th>시각</th></tr></thead><tbody>${f.slice(0, 15).map(q => `<tr><td style="white-space:normal;text-align:left"><a href="${esc(q.properties.url)}" target="_blank" rel="noopener">${esc(q.properties.place)}</a>${q.properties.tsunami ? ' <span class="tag">🌊 쓰나미 정보</span>' : ''}</td><td><b>${q.properties.mag.toFixed(1)}</b></td><td>${Math.round(q.geometry.coordinates[2])}km</td><td>${ago(q.properties.time)}</td></tr>`).join('') || '<tr><td colspan="4" class="flat">없음</td></tr>'}</tbody></table></div>`;
+});
+
+sec('iss', '🛰️ 국제우주정거장', '지금 위치 · wheretheiss.at', async () => {
+  const j = await getJSON('https://api.wheretheiss.at/v1/satellites/25544');
+  const lat = j.latitude, lon = j.longitude;
+  return `<div class="grid">${tile('위도 · 경도', `${lat.toFixed(1)}°, ${lon.toFixed(1)}°`, `<span class="flat"><a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=3/${lat}/${lon}" target="_blank" rel="noopener">지도에서 보기</a></span>`)}${tile('고도', nf(j.altitude, 0) + 'km', `<span class="flat">${j.visibility === 'daylight' ? '☀️ 낮 구간' : '🌙 밤 구간'}</span>`)}${tile('속도', nf(j.velocity, 0) + 'km/h', `<span class="flat">한 바퀴 약 92분</span>`)}</div>`;
+});
+
+sec('wiki', '📚 위키백과 많이 본 문서', '한국어 위키백과 · 어제 기준', async () => {
+  const y = new Date(Date.now() - 864e5), p = n => String(n).padStart(2, '0');
+  const j = await getJSON(`https://api.wikimedia.org/feed/v1/wikipedia/ko/featured/${y.getUTCFullYear()}/${p(y.getUTCMonth() + 1)}/${p(y.getUTCDate())}`);
+  const a = (j.mostread?.articles || []).filter(x => !/^(특수|위키백과):/.test(x.titles?.normalized || '')).slice(0, 15);
+  if (!a.length) return '<div class="err">아직 집계 전이에요</div>';
+  return `<div class="card"><ol>${a.map(x => `<li><a href="${esc(x.content_urls?.desktop?.page)}" target="_blank" rel="noopener">${esc(x.titles.normalized)}</a> <span class="meta">${nf(x.views, 0)}회</span>${x.description ? `<div class="meta">${esc(x.description)}</div>` : ''}</li>`).join('')}</ol></div>`;
+});
+
+sec('hn', '🧑‍💻 해커뉴스 인기글', 'news.ycombinator.com 상위', async () => {
+  const ids = (await getJSON('https://hacker-news.firebaseio.com/v0/topstories.json')).slice(0, 15);
+  const items = await Promise.all(ids.map(id => getJSON(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).catch(() => null)));
+  return `<div class="card"><ol>${items.filter(Boolean).map(i => `<li><a href="${esc(i.url || 'https://news.ycombinator.com/item?id=' + i.id)}" target="_blank" rel="noopener">${esc(i.title)}</a> <span class="meta">▲${i.score} · <a href="https://news.ycombinator.com/item?id=${i.id}" target="_blank" rel="noopener">댓글 ${i.descendants ?? 0}</a></span></li>`).join('')}</ol></div>`;
+});
+
+// ---------- 렌더링 ----------
+$('#nav').innerHTML = SECTIONS.map(s => `<a href="#${s.id}">${esc(s.title)}</a>`).join('');
+$('#root').innerHTML = SECTIONS.map(s => `<section id="${s.id}"><h2>${esc(s.title)} <small>${esc(s.note)}</small></h2><div class="body"><div class="load">불러오는 중…</div></div></section>`).join('');
+
+let busy = false;
+async function loadAll() {
+  if (busy) return; busy = true;
+  for (const k in CTX) delete CTX[k];
+  for (const k in SPARKS) delete SPARKS[k];
+  const t0 = Date.now();
+  let ok = 0;
+  await Promise.all(SECTIONS.map(async s => {
+    const el = $('#' + s.id + ' .body');
+    try { el.innerHTML = await s.load(); ok++; }
+    catch (e) { if (el.querySelector('.load')) el.innerHTML = `<div class="err">⚠️ 지금은 불러오지 못했어요 (${esc(e.message || e)}) · 잠시 후 새로고침</div>`; }
+  }));
+  $('#stamp').textContent = `${new Date().toLocaleString('ko-KR')} 기준 · ${ok}/${SECTIONS.length}개 데이터 · ${((Date.now() - t0) / 1000).toFixed(1)}초`;
+  busy = false;
+}
+let timer = setInterval(loadAll, 60000);
+$('#reload').onclick = loadAll;
+$('#auto').onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; $('#auto').textContent = '자동 1분: 꺼짐'; }
+  else { timer = setInterval(loadAll, 60000); $('#auto').textContent = '자동 1분: 켜짐'; }
+};
+loadAll();
+</script>
+</body>
+</html>
