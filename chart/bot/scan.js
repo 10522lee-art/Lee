@@ -4,7 +4,7 @@
 //          SCAN_MODE=full|light  전체 분석 여부 강제 (daemon.js가 사용), 없으면 매시 첫 30분에 전체 분석
 const fs = require('fs'), path = require('path');
 const TA = require('../analysis.js');
-const BR = require('./brief.js'), WT = require('./watch.js');
+const BR = require('./brief.js'), WT = require('./watch.js'), createTrip = require('./trip.js');
 const CFG_FILE = process.env.BOT_WATCHLIST || path.join(__dirname, 'watchlist.json');
 const CFG = JSON.parse(fs.readFileSync(CFG_FILE, 'utf8'));
 const STATE_FILE = process.env.BOT_STATE || path.join(__dirname, 'state.json');
@@ -100,7 +100,9 @@ async function readUpdates() {
 // 텔레그램 입력창 '/' 메뉴에 명령어 목록 등록 (목록이 바뀔 때만)
 const MENU = [['help', '도움말'], ['brief', '아침 브리핑 지금 받기'], ['alert', '가격 알림 추가 (종목 가격)'], ['alerts', '가격 알림 목록'], ['unalert', '가격 알림 삭제'],
   ['watch', '웹페이지 감시 추가 (URL [키워드])'], ['watches', '웹페이지 감시 목록'], ['unwatch', '웹페이지 감시 삭제'], ['weather', '날씨 (도시)'], ['city', '브리핑 도시 변경'],
-  ['now', '종목 바로 분석'], ['summary', '관심종목 요약'], ['status', '봇 상태'], ['list', '관심종목 목록'], ['add', '관심종목 추가'], ['remove', '관심종목 삭제'], ['paper', '모의매매 성과'], ['tf', '봉 단위 변경']];
+  ['now', '종목 바로 분석'], ['summary', '관심종목 요약'], ['status', '봇 상태'], ['list', '관심종목 목록'], ['add', '관심종목 추가'], ['remove', '관심종목 삭제'], ['paper', '모의매매 성과'], ['tf', '봉 단위 변경'],
+  ['trip', '✈️ 여행 일정·D-day'], ['today', '✈️ 오늘 도시·날씨·지출'], ['spent', '✈️ 지출 정리 (오늘/전체/도시)'], ['undo', '✈️ 마지막 지출 취소'],
+  ['check', '✈️ 출발 전 체크리스트'], ['done', '✈️ 체크리스트 완료'], ['won', '✈️ 환산 (50유로)'], ['budget', '✈️ 예산 설정'], ['export', '✈️ 지출 엑셀(CSV) 받기']];
 async function registerCommands() {
   const ver = MENU.map(m => m[0]).join(',');
   if (!live || state._menu === ver) return;
@@ -113,6 +115,18 @@ async function send(text) {
   // 텔레그램 메시지 길이 제한 4096자
   for (let i = 0; i < text.length; i += 3900) await tg('sendMessage', { chat_id: state._chatId, text: text.slice(i, i + 3900), parse_mode: 'HTML', disable_web_page_preview: true });
 }
+
+async function sendDoc(name, content, caption) {
+  if (!live) { console.log(`--- 텔레그램 파일 ${name} (미전송) ---\n${caption}\n${content.slice(0, 600)}\n`); return; }
+  const fd = new FormData();
+  fd.append('chat_id', String(state._chatId)); fd.append('caption', caption); fd.append('parse_mode', 'HTML');
+  fd.append('document', new Blob(['\ufeff' + content], { type: 'text/csv' }), name); // BOM: 엑셀 한글 깨짐 방지
+  const r = await fetch(`https://api.telegram.org/bot${TOKEN}/sendDocument`, { method: 'POST', body: fd }).then(r => r.json());
+  if (!r.ok) throw new Error(`텔레그램 sendDocument 실패: ${r.description}`);
+}
+
+// ---------- 여행 비서 ----------
+const TRIP = createTrip({ getJSON, BR, state, esc, token: TOKEN, sendDoc, now: process.env.TRIP_NOW ? () => Date.parse(process.env.TRIP_NOW) : undefined });
 
 // ---------- 모의매매 ----------
 const BAR_SEC = { '1h': 3600, '4h': 14400, '1d': 86400, '1w': 604800 };
@@ -174,6 +188,8 @@ async function briefMsg() {
   if (state._alerts.length) extra.push(`⏰ 가격 알림 ${state._alerts.length}개 대기`);
   if (state._watches.length) extra.push(`👀 페이지 감시 ${state._watches.length}개`);
   if (extra.length) parts.push(extra.join(' · '));
+  const trip = TRIP.briefSection();
+  if (trip) parts.splice(1, 0, trip);
   return parts.join('\n\n');
 }
 
@@ -304,10 +320,11 @@ async function analyzeOne(s, tf) {
 }
 async function handle(cmd) {
   const [c0, ...args] = cmd.split(/\s+/), c = c0.toLowerCase().replace(/@.*/, '');
+  if (TRIP.COMMANDS.includes(c)) { try { return await TRIP.command(c, args); } catch (e) { return `❌ ${esc(e.message)}`; } }
   const find = q => CFG.symbols.find(s => s.symbol.toUpperCase() === q.toUpperCase() || (s.name && s.name === q));
   switch (c) {
     case '/start': case '/help': case '도움말':
-      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/status — 봇 상태\n\n💬 <b>그냥 종목 이름만 보내도</b> 현재가를 알려줘요 (예: 비트코인, 달러, 엔비디아, 삼성전자)\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n⏰ <b>가격 알림</b> (30분마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등 · 퍼센트: /alert NVDA -5%</i>\n\n☀️ <b>브리핑</b> (매일 ${CFG.dailySummaryHourKST}시)\n/brief — 지금 브리핑 받기\n/weather [도시] — 날씨\n/city 도시 — 브리핑 도시 변경 (현재 ${esc(CFG.brief.city)})\n\n👀 <b>웹페이지 감시</b>\n/watch URL [키워드] — 변경 또는 키워드 등장/사라짐 알림\n/watches — 감시 목록\n/unwatch 번호 — 삭제\n\n<i>${process.env.DAEMON_SINCE ? '⚡ 실시간 모드: 명령은 몇 초 안에 처리됩니다.' : '명령은 다음 실행 때 처리됩니다.'}</i>`;
+      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/status — 봇 상태\n\n✈️ <b>여행 비서</b> (${TRIP.cfg.cities[0][0].slice(5).replace('-', '/')}~ ${esc(TRIP.cfg.name)})\n그냥 <b>점심 18유로</b>, <b>택시 12.5chf</b>, <b>커피 3.2</b>(여행 중) 보내면 지출 기록\n50유로 얼마 — 환산 · /undo — 방금 기록 취소\n/trip 일정 · /today 오늘 · /spent [오늘|어제|전체|도시]\n/check 체크리스트 · /done 번호 · /budget 300만원 · /export 엑셀\n<i>여행 중엔 현지 ${TRIP.cfg.morningHour}시 아침 브리핑, ${TRIP.cfg.eveningHour}시 지출 정리가 자동으로 와요</i>\n\n💬 <b>그냥 종목 이름만 보내도</b> 현재가를 알려줘요 (예: 비트코인, 달러, 엔비디아, 삼성전자)\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n⏰ <b>가격 알림</b> (30분마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등 · 퍼센트: /alert NVDA -5%</i>\n\n☀️ <b>브리핑</b> (매일 ${CFG.dailySummaryHourKST}시)\n/brief — 지금 브리핑 받기\n/weather [도시] — 날씨\n/city 도시 — 브리핑 도시 변경 (현재 ${esc(CFG.brief.city)})\n\n👀 <b>웹페이지 감시</b>\n/watch URL [키워드] — 변경 또는 키워드 등장/사라짐 알림\n/watches — 감시 목록\n/unwatch 번호 — 삭제\n\n<i>${process.env.DAEMON_SINCE ? '⚡ 실시간 모드: 명령은 몇 초 안에 처리됩니다.' : '명령은 다음 실행 때 처리됩니다.'}</i>`;
     case '/list': return `📋 <b>관심종목</b> (${CFG.interval})\n` + CFG.symbols.map(s => `• ${esc(s.name || s.symbol)} <code>${s.symbol}</code> [${s.src}]`).join('\n');
     case '/add': {
       if (!args[0]) return '사용법: /add 종목 [이름]';
@@ -381,6 +398,8 @@ async function handle(cmd) {
       if (c.startsWith('/')) return '모르는 명령어입니다. /help 를 보내보세요.';
       // 슬래시 없이 종목 이름만 보내면 시세 (관심종목, 별칭, 확실한 티커 형식만)
       const t = cmd.trim();
+      // 여행 지출("점심 18유로") / 환산("50유로 얼마")이 먼저
+      try { const tr = await TRIP.text(t); if (tr) return tr; } catch (e) { return `❌ ${esc(e.message)}`; }
       const s = find(t) || alias(t) || (/^(KRW-[A-Z0-9]+|[A-Z0-9]{2,10}USDT|\d{6}|[A-Z]{1,5}|(USD|EUR|JPY|GBP|CNY|CHF)KRW)$/.test(t) ? guessSrc(t) : null);
       if (!s) return t.length <= 20 ? `🤔 「${esc(t)}」 종목을 모르겠어요. 예: 비트코인, 달러, 삼성전자, NVDA\n명령어는 /help` : null;
       try { return await priceCard(s); } catch (e) { return `❌ ${esc(t)} 시세를 못 가져왔습니다 (${esc(e.message)})`; }
@@ -430,11 +449,14 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
     } catch (e) { errors.push(`${s.symbol}: ${e.message}`); }
   }
   if (fullScan && rows.length) state._fullAt = Date.now();
-  const kstHour = (new Date().getUTCHours() + 9) % 24, today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
-  const daily = kstHour >= CFG.dailySummaryHourKST && state._lastSummary !== today; // 예약 실행이 건너뛰어져도 그날 첫 실행에서 보냄
+  // 여행 중에는 현지 아침 기준 (한국 9시 = 유럽 새벽이므로)
+  const tc = TRIP.dailyClock();
+  const kstHour = tc ? tc.hour : (new Date().getUTCHours() + 9) % 24, today = tc ? tc.date : new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+  const daily = kstHour >= (tc ? tc.at : CFG.dailySummaryHourKST) && state._lastSummary !== today; // 예약 실행이 건너뛰어져도 그날 첫 실행에서 보냄
+  try { for (const m of await TRIP.tick()) await send(m); } catch (e) { console.log('여행 알림 실패', e.message); }
   if (alerts.length) await send(`🔔 <b>신호 변화</b> (${tf})\n\n${alerts.join('\n\n')}`);
   if (trades.length) await send(trades.join('\n'));
-  if (fullScan && daily) { try { await send(await briefMsg()); } catch (e) { console.log('브리핑 실패', e.message); } }
+  if (fullScan && daily && !tc) { try { await send(await briefMsg()); } catch (e) { console.log('브리핑 실패', e.message); } }
   if (fullScan && (daily || forceSummary)) {
     await send(`📊 <b>관심종목 요약</b> ${today} (${tf})\n\n${rows.join('\n')}${errors.length ? `\n\n⚠ ${esc(errors.join(', '))}` : ''}`);
     if (daily) state._lastSummary = today;

@@ -32,7 +32,8 @@ function scan(mode, why) {
 function commit(final) {
   if (process.env.NO_GIT || process.env.DRY_RUN) return;
   try {
-    execSync('git add chart/bot/state.json chart/bot/watchlist.json', { stdio: 'pipe' });
+    const files = ['chart/bot/state.json', 'chart/bot/watchlist.json', 'chart/bot/trip-data.enc'].filter(f => fs.existsSync(f));
+    execSync(`git add ${files.join(' ')}`, { stdio: 'pipe' });
     try { execSync('git diff --cached --quiet', { stdio: 'pipe' }); return; } catch { } // 변경 있음
     execSync('git commit -q -m "chart-bot: update state [skip ci]"', { stdio: 'pipe' });
     for (let t = 0; t < 3; t++) {
