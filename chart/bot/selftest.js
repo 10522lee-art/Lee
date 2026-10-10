@@ -110,6 +110,14 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
     ok(!/점심/.test(raw) && JSON.parse(raw).iv && SEC.loadTrip(ef, 'secret-token').spends[0].text === '점심' && SEC.loadTrip(ef, 'wrong-token').spends.length === 0, '지출 데이터 암호화 저장');
   }
 
+  // ---------- 대시보드 렌더링 ----------
+  {
+    const render = require('./dash.js');
+    const html = render({ cfg: { interval: '1d', symbols: [{ src: 'us', symbol: 'NVDA' }] }, state: { _trip: { budget: 3000000 }, _alerts: [{ name: '달러<b>', op: '<=', price: 1350 }] }, trip: { spends: [{ date: '2026-11-18', city: '포르투', cat: '식사', text: '<script>x</script>점심', amount: 18, cur: 'EUR', krw: 28800, pay: '카드' }] }, now: Date.parse('2026-11-18T12:00:00Z') });
+    ok(/Day 2/.test(html) && /₩28,800/.test(html) && /포르투/.test(html) && /₩2,971,200/.test(html) && !/<script>x/.test(html) && /&lt;script&gt;x/.test(html) && /달러&lt;b&gt;/.test(html), '대시보드: 숫자·도시·예산·HTML 이스케이프');
+    ok(/Cloudflare 버전에서/.test(bot(['/dash'])), '/dash: Node 모드 안내');
+  }
+
   // ---------- daemon.js (짧게 실행) ----------
   try {
     const t0 = Date.now();
