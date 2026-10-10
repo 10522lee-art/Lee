@@ -1,6 +1,6 @@
 // 여행 비서: 지출 기록(텔레그램에 "점심 18유로"), 일정/D-day, 현지 시간 아침·저녁 알림, 체크리스트, CSV
-// 지출 데이터는 공개 저장소에 올라가므로 봇 토큰으로 만든 키로 AES-256-GCM 암호화해서 저장
-const fs = require('fs'), path = require('path'), crypto = require('crypto');
+// Node·Cloudflare Workers 공용 (파일 저장·암호화는 호출하는 쪽 담당: Node는 secure.js)
+const TRIP_CFG = require('./trip.json');
 
 const CATS = {
   식사: ['점심', '저녁', '아침', '식사', '브런치', '밥', '식당', '레스토랑', '타파스', '피자', '파스타', '맥주', '와인', '술', '음료', '물', '간식', '버거', '샌드위치', '빠에야'],
@@ -38,39 +38,16 @@ function parseMoney(text) {
 // 가장 길게 맞는 단어의 분류 ("박물관"이 "물"보다, "미술관"이 "술"보다 우선)
 const catOf = text => { let best = null, len = 0; for (const [k, ws] of Object.entries(CATS)) for (const w of ws) if (w.length > len && text.includes(w)) { best = k; len = w.length; } return best; };
 
-module.exports = function createTrip({ getJSON, BR, state, esc, token, sendDoc, now = () => Date.now(), cfgFile, dataFile }) {
-  const cfg = JSON.parse(fs.readFileSync(cfgFile || path.join(__dirname, 'trip.json'), 'utf8'));
+module.exports = function createTrip({ getJSON, BR, state, esc, sendDoc, now = () => Date.now(), cfg = TRIP_CFG, tripData, onChange, mock = false }) {
   const C = cfg.cities.map(([from, to, name, cur, emoji, tz]) => ({ from, to, name, cur, emoji, tz }));
   const FIRST = C[0].from, LAST = C.at(-1).to, TOTAL = diffDays(LAST, FIRST) + 1;
   state._trip ||= {};
   const T = state._trip;
 
-  // ---------- 암호화 저장 ----------
-  const FILE = dataFile || process.env.TRIP_DATA || (token ? path.join(__dirname, 'trip-data.enc') : null); // 토큰 없으면 메모리에만
-  const key = token ? crypto.createHash('sha256').update('trip-data:' + token).digest() : null;
-  let data = { spends: [] };
-  if (FILE && fs.existsSync(FILE)) {
-    try {
-      const raw = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-      if (raw.iv) {
-        const d = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(raw.iv, 'base64'));
-        d.setAuthTag(Buffer.from(raw.tag, 'base64'));
-        data = JSON.parse(Buffer.concat([d.update(Buffer.from(raw.data, 'base64')), d.final()]).toString('utf8'));
-      } else data = raw;
-    } catch (e) {
-      console.log('여행 데이터 복호화 실패 — 새로 시작 (기존 파일은 .bak으로 보관)', e.message);
-      try { fs.copyFileSync(FILE, FILE + '.bak'); } catch { }
-    }
-  }
+  // ---------- 저장: 데이터는 호출하는 쪽이 넘겨주고, 바뀌면 onChange() (Node는 암호화 파일, Workers는 Durable Object) ----------
+  const data = tripData || { spends: [] };
   data.spends ||= [];
-  function save() {
-    if (!FILE) return;
-    const json = JSON.stringify(data);
-    if (!key) return fs.writeFileSync(FILE, json);
-    const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const enc = Buffer.concat([c.update(json, 'utf8'), c.final()]);
-    fs.writeFileSync(FILE, JSON.stringify({ v: 1, iv: iv.toString('base64'), tag: c.getAuthTag().toString('base64'), data: enc.toString('base64') }) + '\n');
-  }
+  const save = () => onChange && onChange(data);
 
   // ---------- 날짜/도시 ----------
   const tripDate = () => zoned(now(), 'Europe/Madrid').date; // 여행 도시들은 모두 UTC+0~+1
@@ -94,7 +71,7 @@ module.exports = function createTrip({ getJSON, BR, state, esc, token, sendDoc, 
   // ---------- 환율 (3시간 캐시) ----------
   async function rates() {
     const fb = cfg.fallbackRates;
-    if (process.env.MOCK) return { ...fb, KRW: 1 };
+    if (mock) return { ...fb, KRW: 1 };
     const fx = state._fx;
     if (fx && now() - fx.at < 3 * 3600e3) return { ...fx, KRW: 1 };
     const out = { at: now() };
@@ -156,7 +133,7 @@ module.exports = function createTrip({ getJSON, BR, state, esc, token, sendDoc, 
 
   // ---------- 메시지 ----------
   async function weatherOf(c) {
-    if (process.env.MOCK) return `☀️ <b>${c.emoji} ${c.name}</b> 지금 15° (모의)`;
+    if (mock) return `☀️ <b>${c.emoji} ${c.name}</b> 지금 15° (모의)`;
     try { const city = await BR.geocode(getJSON, c.name); return BR.weatherText({ ...city, name: `${c.emoji} ${c.name}` }, await BR.weather(getJSON, city)); }
     catch (e) { return `날씨 ⚠ ${esc(e.message)}`; }
   }

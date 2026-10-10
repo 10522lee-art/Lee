@@ -1,7 +1,7 @@
 name: 봇 자체 테스트
 on:
   pull_request:
-    paths: ['chart/**', '.github/workflows/**']
+    paths: ['chart/**', 'worker/**', '.github/workflows/**']
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,3 +17,9 @@ jobs:
         env:
           LIVE: '1'
         run: node chart/bot/selftest.js
+      - name: Cloudflare Workers 버전 — 로컬 런타임(workerd) 통합 테스트
+        working-directory: worker
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/test-local.js
+          npx wrangler deploy --dry-run --outdir dist

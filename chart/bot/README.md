@@ -1,13 +1,34 @@
 # 텔레그램 자동화 봇
 
-GitHub Actions 위에서 **실시간**으로 돌아갑니다 (`.github/workflows/chart-alert.yml` → `daemon.js`). 서버가 필요 없습니다.
-필요한 시크릿은 `TELEGRAM_BOT_TOKEN` 하나이고, 봇에게 처음 메시지를 보낸 사람이 주인으로 등록됩니다.
+봇 로직은 `core.js` 하나이고, 두 곳에서 돌 수 있습니다.
 
-- 한 번 실행되면 약 5시간 40분 동안 상주하면서 텔레그램 메시지에 **몇 초 안에** 답합니다.
-- 끝날 때 다음 실행을 스스로 예약해서 24시간 이어지고, 3시간마다 도는 예약 실행이 끊김을 대비합니다.
-- 공개 저장소라 Actions 사용 시간은 무료입니다.
-- 멈추려면 Actions 탭 → **차트 알림 봇** → `···` → **Disable workflow**.
-- 상태(`state.json`)는 바뀌었을 때 최대 10분마다 커밋됩니다. 공개 저장소이므로 알림 메모나 감시 URL에 개인정보를 넣지 마세요.
+| | ☁️ Cloudflare Workers (권장) | GitHub Actions (임시) |
+|---|---|---|
+| 코드 | `worker/src/index.js` | `scan.js` + `daemon.js` |
+| 응답 | 웹훅으로 **1초 안** | 롱폴링 상주, 몇 초 |
+| 켜져 있는 시간 | 항상 | 약 5시간 40분마다 자기 자신을 다시 실행 |
+| 데이터 | 비공개 Durable Object | 공개 저장소의 `state.json` (지출은 암호화) |
+| 이용 약관 | 문제 없음 (봇용으로 만든 서비스) | ⚠ GitHub Actions 약관상 "서버리스 앱 용도"는 금지 — 계정 제재 위험 |
+| 비용 | 무료 | 무료 |
+
+**Cloudflare로 옮기는 법 (한 번만, 5분)**
+1. [dash.cloudflare.com](https://dash.cloudflare.com/sign-up)에서 무료로 가입합니다. 왼쪽 메뉴 **Workers & Pages**에 한 번 들어가서 `workers.dev` 서브도메인을 정합니다.
+2. 오른쪽 위 프로필 → **My Profile → API Tokens → Create Token** → **Edit Cloudflare Workers** 템플릿을 고릅니다. Account Resources는 내 계정, Zone Resources는 All zones로 둡니다. **Create Token**을 누르고 토큰을 복사합니다.
+3. GitHub 저장소 → **Settings → Secrets and variables → Actions → New repository secret**에서 이름 `CLOUDFLARE_API_TOKEN`으로 붙여넣습니다.
+4. **Actions → 봇 클라우드 배포 → Run workflow**를 누릅니다.
+
+배포 워크플로(`worker-deploy.yml`)가 나머지를 자동으로 합니다.
+- Workers 배포
+- GitHub Actions 봇 끄기
+- 알림·감시·여행 기록 이사
+- 텔레그램 웹훅 연결
+- 텔레그램으로 "☁️ 이사했어요" 메시지 보내기
+
+이후 `master`에 봇 코드가 바뀌면 자동으로 다시 배포됩니다.
+
+*되돌리기*: Actions에서 **차트 알림 봇**을 Enable하고, 브라우저로 `https://api.telegram.org/bot<토큰>/deleteWebhook`를 엽니다.
+
+공통: 필요한 시크릿은 `TELEGRAM_BOT_TOKEN`이고, 봇에게 처음 메시지를 보낸 사람이 주인으로 등록됩니다.
 
 ## 하는 일
 
@@ -16,7 +37,7 @@ GitHub Actions 위에서 **실시간**으로 돌아갑니다 (`.github/workflows
 | ✈️ 여행 비서 | 현지 8시·21시 | 지출 기록·환산·일정·체크리스트 (아래 참고) |
 | ☀️ 아침 브리핑 | 매일 9시 (KST) | 날씨, 환율(달러·유로·엔), 지수(코스피·코스닥·S&P500·나스닥), 코인(BTC·ETH) |
 | 📊 관심종목 요약 | 매일 9시 | 종목별 종합점수와 TradingView 등급 |
-| 🔔 신호 변화 | 매시 7분 | 등급 변경, 매수/매도 구간 진입, 차트 패턴 확정 |
+| 🔔 신호 변화 | 매시 (클라우드: 종목별 약 70분마다) | 등급 변경, 매수/매도 구간 진입, 차트 패턴 확정 |
 | ⏰ 가격 알림 | 5분마다 | 목표가에 닿으면 1회 알림 후 자동 삭제 |
 | 👀 웹페이지 감시 | 10분마다 | 페이지 내용 변경, 또는 키워드 등장/사라짐 |
 | 💹 시세 조회 | 즉시 | 종목 이름만 보내면 현재가와 등락 (예: `달러`, `비트코인`, `삼성전자`) |
@@ -83,5 +104,6 @@ GitHub Actions 위에서 **실시간**으로 돌아갑니다 (`.github/workflows
 ```
 node chart/bot/selftest.js          # 오프라인 (모의 데이터)
 LIVE=1 node chart/bot/selftest.js   # 실제 시세/날씨/웹 API까지
+cd worker && npm ci && node scripts/test-local.js   # Workers 버전을 실제 Cloudflare 런타임(workerd)으로 로컬 실행해 웹훅·cron·이사·동시성 확인
 ```
-PR을 열면 `봇 자체 테스트` 워크플로가 자동으로 둘 다 실행합니다. 실제 state.json은 건드리지 않고 텔레그램 전송도 하지 않습니다.
+PR을 열면 `봇 자체 테스트` 워크플로가 자동으로 셋 다 실행합니다. 실제 state.json은 건드리지 않고 텔레그램 전송도 하지 않습니다.
