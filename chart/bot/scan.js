@@ -42,10 +42,26 @@ async function load(s, tf) {
   if (s.src === 'upbit') return upbit(s.symbol, tf);
   if (s.src === 'us') return yahoo(s.symbol, tf);
   if (s.src === 'kr') { try { return await yahoo(s.symbol + '.KS', tf); } catch { return yahoo(s.symbol + '.KQ', tf); } }
+  if (s.src === 'fx') return yahoo(s.symbol + '=X', tf);
+  throw new Error('알 수 없는 src ' + s.src);
+}
+// 현재가만 가볍게 조회 (가격 알림용, 30분마다)
+async function yahooPrice(ticker) {
+  const j = await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=5d`);
+  const m = j.chart.result[0].meta;
+  return { price: m.regularMarketPrice, name: m.shortName || m.symbol };
+}
+async function quote(s) {
+  if (process.env.MOCK) return { price: +(process.env.MOCK_PRICE || 100) };
+  if (s.src === 'binance') return { price: +(await getJSON(`https://data-api.binance.vision/api/v3/ticker/price?symbol=${s.symbol}`)).price };
+  if (s.src === 'upbit') return { price: (await getJSON(`https://api.upbit.com/v1/ticker?markets=${s.symbol}`))[0].trade_price };
+  if (s.src === 'us') return yahooPrice(s.symbol);
+  if (s.src === 'kr') { try { return await yahooPrice(s.symbol + '.KS'); } catch { return yahooPrice(s.symbol + '.KQ'); } }
+  if (s.src === 'fx') return yahooPrice(s.symbol + '=X');
   throw new Error('알 수 없는 src ' + s.src);
 }
 const tvLink = s => {
-  const sym = s.src === 'binance' ? `BINANCE:${s.symbol}` : s.src === 'upbit' ? `UPBIT:${s.symbol.split('-')[1]}${s.symbol.split('-')[0]}` : s.src === 'kr' ? `KRX:${s.symbol}` : s.symbol;
+  const sym = s.src === 'binance' ? `BINANCE:${s.symbol}` : s.src === 'upbit' ? `UPBIT:${s.symbol.split('-')[1]}${s.symbol.split('-')[0]}` : s.src === 'kr' ? `KRX:${s.symbol}` : s.src === 'fx' ? `FX_IDC:${s.symbol}` : s.symbol;
   return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(sym)}`;
 };
 const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
@@ -130,11 +146,52 @@ function paperReport(prices) {
 function guessSrc(sym) {
   const u = sym.toUpperCase();
   if (/^KRW-/.test(u)) return { src: 'upbit', symbol: u };
+  if (/^(USD|EUR|JPY|GBP|CNY|CHF|AUD|CAD|HKD)(KRW|USD|EUR|JPY)$/.test(u)) return { src: 'fx', symbol: u };
   if (/(USDT|USDC|BTC)$/.test(u) && u.length > 5) return { src: 'binance', symbol: u };
   if (/^\d{6}$/.test(u)) return { src: 'kr', symbol: u };
   return { src: 'us', symbol: u };
 }
 let cfgChanged = false;
+
+// ---------- 가격 알림 ----------
+state._alerts ||= [];
+const parseNum = t => { const n = +String(t).replace(/,/g, ''); return Number.isFinite(n) && n > 0 ? n : null; };
+const alertLine = (x, i) => `${i + 1}. ${esc(x.name)} ${x.op === '>=' ? '≥' : '≤'} <b>${TA.fmt(x.price)}</b>${x.note ? ` — ${esc(x.note)}` : ''}`;
+async function addAlert(args, find) {
+  // 형식: /alert 종목 [>|<]가격 [메모]  — 가격은 종목 뒤 첫 숫자
+  const pi = args.findIndex((a, i) => i > 0 && parseNum(a.replace(/^[<>]=?/, '')));
+  if (pi < 1) return '사용법: /alert 종목 가격 [메모]\n예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전, /alert 삼성전자 &gt;70000';
+  const symQ = args.slice(0, pi).join(' '), spec = args[pi], note = args.slice(pi + 1).join(' ');
+  const s = find(symQ) || guessSrc(args[0]);
+  let q;
+  try { q = await quote(s); if (!(q.price > 0)) throw new Error('가격 없음'); } catch (e) { return `❌ ${esc(symQ)} 현재가를 못 가져왔습니다 (${esc(e.message)})`; }
+  const price = parseNum(spec.replace(/^[<>]=?/, ''));
+  const op = spec.startsWith('>') ? '>=' : spec.startsWith('<') ? '<=' : price >= q.price ? '>=' : '<=';
+  if (op === '>=' ? q.price >= price : q.price <= price) return `⚠ 이미 조건을 만족합니다: 현재 ${TA.fmt(q.price)}`;
+  if (state._alerts.length >= 50) return '알림은 최대 50개까지입니다. /unalert 로 정리해주세요.';
+  const a = { src: s.src, symbol: s.symbol, name: s.name || q.name || s.symbol, op, price, at: Math.floor(Date.now() / 1000), ...(note ? { note } : {}) };
+  state._alerts.push(a);
+  const gap = (price / q.price - 1) * 100;
+  return `⏰ 알림 등록: ${alertLine(a, state._alerts.length - 1).replace(/^\d+\. /, '')}\n현재 ${TA.fmt(q.price)} (${gap >= 0 ? '+' : ''}${gap.toFixed(2)}% 남음)`;
+}
+async function checkAlerts() {
+  const out = [], cache = {};
+  const keep = [];
+  for (const a of state._alerts) {
+    const k = `${a.src}:${a.symbol}`;
+    try {
+      cache[k] ??= (await quote(a)).price;
+      const px = cache[k];
+      if (a.op === '>=' ? px >= a.price : px <= a.price) {
+        out.push(`🚨 <b>${esc(a.name)}</b> ${a.op === '>=' ? '목표가 돌파' : '목표가 하회'}\n현재 <b>${TA.fmt(px)}</b> (설정 ${a.op === '>=' ? '≥' : '≤'} ${TA.fmt(a.price)})${a.note ? `\n📝 ${esc(a.note)}` : ''}\n<a href="${tvLink(a)}">TradingView에서 보기</a>`);
+        continue;
+      }
+    } catch (e) { console.log(`알림 시세 실패 ${k}: ${e.message}`); }
+    keep.push(a);
+  }
+  state._alerts = keep;
+  return out;
+}
 async function analyzeOne(s, tf) {
   const cs = await load(s, tf);
   if (cs.length < 60) throw new Error(`데이터 부족 (${cs.length}봉)`);
@@ -145,7 +202,7 @@ async function handle(cmd) {
   const find = q => CFG.symbols.find(s => s.symbol.toUpperCase() === q.toUpperCase() || (s.name && s.name === q));
   switch (c) {
     case '/start': case '/help': case '도움말':
-      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n<i>명령은 최대 30분 안에 처리됩니다.</i>`;
+      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n⏰ <b>가격 알림</b> (30분마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등</i>\n\n<i>명령은 최대 30분 안에 처리됩니다.</i>`;
     case '/list': return `📋 <b>관심종목</b> (${CFG.interval})\n` + CFG.symbols.map(s => `• ${esc(s.name || s.symbol)} <code>${s.symbol}</code> [${s.src}]`).join('\n');
     case '/add': {
       if (!args[0]) return '사용법: /add 종목 [이름]';
@@ -175,6 +232,15 @@ async function handle(cmd) {
         return `${emo(a.score)} <b>${esc(name)}</b> ${TA.fmt(px)}\n종합 <b>${a.score} ${a.verdict}</b> · TV <b>${tv.summary.label}</b>\n\n${top.join('\n')}\n\n지지 ${TA.fmt(a.risk.support)} · 저항 ${TA.fmt(a.risk.resistance)}\n손절 ${TA.fmt(a.risk.stopLong)} · 목표 ${TA.fmt(a.risk.targetLong)}\n<a href="${tvLink(s)}">TradingView에서 보기</a>`;
       } catch (e) { return `❌ ${esc(e.message)}`; }
     }
+    case '/alert': return addAlert(args, find);
+    case '/alerts': return state._alerts.length ? `⏰ <b>가격 알림</b> (${state._alerts.length})\n` + state._alerts.map(alertLine).join('\n') : '등록된 알림이 없습니다. /alert 종목 가격';
+    case '/unalert': {
+      if (args[0] === 'all') { const n = state._alerts.length; state._alerts = []; return `🗑 알림 ${n}개 삭제`; }
+      const i = +args[0] - 1;
+      if (!state._alerts[i]) return '사용법: /unalert 번호 (번호는 /alerts 에서 확인)';
+      const [a] = state._alerts.splice(i, 1);
+      return `🗑 알림 삭제: ${alertLine(a, 0).replace(/^\d+\. /, '')}`;
+    }
     case '/summary': forceSummary = true; return null;
     case '/paper': wantPaper = true; return null;
     default: return c.startsWith('/') ? '모르는 명령어입니다. /help 를 보내보세요.' : null;
@@ -186,6 +252,8 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
   const replies = [];
   for (const cmd of await readUpdates()) { const r = await handle(cmd); if (r) replies.push(r); }
   for (const r of replies) await send(r);
+  const hits = state._alerts.length ? await checkAlerts() : [];
+  if (hits.length) await send(hits.join('\n\n'));
   if (cfgChanged) fs.writeFileSync(path.join(__dirname, 'watchlist.json'), JSON.stringify(CFG, null, 2) + '\n');
 
   // 30분마다 실행되지만 전체 분석은 매시 첫 실행에서만 (명령 응답·요약 요청 시는 즉시)
@@ -224,6 +292,6 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
   }
   if (fullScan && (daily || wantPaper)) await send(paperReport(prices));
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 1));
-  console.log(`명령 ${replies.length}개, 분석 ${rows.length}개, 알림 ${alerts.length}개, 모의거래 ${trades.length}개, 오류 ${errors.length}개`, errors);
+  console.log(`명령 ${replies.length}개, 가격알림 ${hits.length}개(남은 ${state._alerts.length}), 분석 ${rows.length}개, 알림 ${alerts.length}개, 모의거래 ${trades.length}개, 오류 ${errors.length}개`, errors);
   if (fullScan && !rows.length && errors.length) process.exit(1);
 })();
