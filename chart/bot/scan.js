@@ -1,6 +1,7 @@
 // 관심종목 자동 분석 → 텔레그램 알림
 // 환경변수: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, (선택) DRY_RUN=1 출력만, MOCK=1 가짜 데이터, FORCE_SUMMARY=1 요약 강제
 //          BOT_STATE / BOT_WATCHLIST 파일 경로 변경 (테스트용)
+//          SCAN_MODE=full|light  전체 분석 여부 강제 (daemon.js가 사용), 없으면 매시 첫 30분에 전체 분석
 const fs = require('fs'), path = require('path');
 const TA = require('../analysis.js');
 const BR = require('./brief.js'), WT = require('./watch.js');
@@ -99,7 +100,7 @@ async function readUpdates() {
 // 텔레그램 입력창 '/' 메뉴에 명령어 목록 등록 (목록이 바뀔 때만)
 const MENU = [['help', '도움말'], ['brief', '아침 브리핑 지금 받기'], ['alert', '가격 알림 추가 (종목 가격)'], ['alerts', '가격 알림 목록'], ['unalert', '가격 알림 삭제'],
   ['watch', '웹페이지 감시 추가 (URL [키워드])'], ['watches', '웹페이지 감시 목록'], ['unwatch', '웹페이지 감시 삭제'], ['weather', '날씨 (도시)'], ['city', '브리핑 도시 변경'],
-  ['now', '종목 바로 분석'], ['summary', '관심종목 요약'], ['list', '관심종목 목록'], ['add', '관심종목 추가'], ['remove', '관심종목 삭제'], ['paper', '모의매매 성과'], ['tf', '봉 단위 변경']];
+  ['now', '종목 바로 분석'], ['summary', '관심종목 요약'], ['status', '봇 상태'], ['list', '관심종목 목록'], ['add', '관심종목 추가'], ['remove', '관심종목 삭제'], ['paper', '모의매매 성과'], ['tf', '봉 단위 변경']];
 async function registerCommands() {
   const ver = MENU.map(m => m[0]).join(',');
   if (!live || state._menu === ver) return;
@@ -214,7 +215,23 @@ async function checkWatches() {
 }
 
 // ---------- 명령어 ----------
+// 한글/약칭 → 종목 (/now 엔비디아, /alert 비트코인 -5%, 그냥 '달러'라고 보내기)
+const A = (src, symbol, name) => ({ src, symbol, name });
+const ALIAS = {};
+for (const [keys, v] of [
+  ['비트코인 btc', A('binance', 'BTCUSDT', '비트코인')], ['이더리움 이더 eth', A('binance', 'ETHUSDT', '이더리움')], ['리플 xrp', A('upbit', 'KRW-XRP', '리플')],
+  ['솔라나 sol', A('binance', 'SOLUSDT', '솔라나')], ['도지 도지코인 doge', A('binance', 'DOGEUSDT', '도지코인')],
+  ['달러 환율 usd 원달러', A('fx', 'USDKRW', '달러')], ['유로 eur', A('fx', 'EURKRW', '유로')], ['엔 엔화 jpy', A('fx', 'JPYKRW', '엔화(1엔)')],
+  ['위안 위안화 cny', A('fx', 'CNYKRW', '위안')], ['파운드 gbp', A('fx', 'GBPKRW', '파운드')], ['프랑 스위스프랑 chf', A('fx', 'CHFKRW', '스위스프랑')],
+  ['코스피 kospi', A('us', '^KS11', '코스피')], ['코스닥 kosdaq', A('us', '^KQ11', '코스닥')], ['나스닥지수', A('us', '^IXIC', '나스닥')], ['s&p500 sp500 에스앤피', A('us', '^GSPC', 'S&P500')],
+  ['삼성전자 삼전', A('kr', '005930', '삼성전자')], ['sk하이닉스 하이닉스', A('kr', '000660', 'SK하이닉스')], ['네이버 naver', A('kr', '035420', '네이버')],
+  ['카카오', A('kr', '035720', '카카오')], ['현대차 현대자동차', A('kr', '005380', '현대차')], ['lg에너지솔루션 엘지엔솔', A('kr', '373220', 'LG에너지솔루션')], ['셀트리온', A('kr', '068270', '셀트리온')],
+  ['엔비디아', A('us', 'NVDA', '엔비디아')], ['테슬라', A('us', 'TSLA', '테슬라')], ['애플', A('us', 'AAPL', '애플')], ['마이크로소프트 마소', A('us', 'MSFT', '마이크로소프트')],
+  ['구글 알파벳', A('us', 'GOOGL', '구글')], ['아마존', A('us', 'AMZN', '아마존')], ['메타 페이스북', A('us', 'META', '메타')], ['나스닥 qqq', A('us', 'QQQ', 'QQQ')], ['spy', A('us', 'SPY', 'SPY')],
+]) for (const k of keys.split(' ')) ALIAS[k] = v;
+const alias = q => { const v = ALIAS[String(q).toLowerCase().replace(/\s+/g, '')]; return v && { ...v }; };
 function guessSrc(sym) {
+  const al = alias(sym); if (al) return al;
   const u = sym.toUpperCase();
   if (/^KRW-/.test(u)) return { src: 'upbit', symbol: u };
   if (/^(USD|EUR|JPY|GBP|CNY|CHF|AUD|CAD|HKD)(KRW|USD|EUR|JPY)$/.test(u)) return { src: 'fx', symbol: u };
@@ -223,6 +240,20 @@ function guessSrc(sym) {
   return { src: 'us', symbol: u };
 }
 let cfgChanged = false;
+// 현재가 + 전일 대비 (그냥 종목 이름만 보냈을 때)
+async function priceCard(s) {
+  let q;
+  if (process.env.MOCK) q = { price: +(process.env.MOCK_PRICE || 100), chg: 1.23 };
+  else if (s.src === 'binance') q = await BR.binanceChange(getJSON, s.symbol);
+  else if (s.src === 'upbit') { const t = (await getJSON(`https://api.upbit.com/v1/ticker?markets=${s.symbol}`))[0]; q = { price: t.trade_price, chg: t.signed_change_rate * 100 }; }
+  else if (s.src === 'kr') { try { q = await BR.yahooChange(getJSON, s.symbol + '.KS'); } catch { q = await BR.yahooChange(getJSON, s.symbol + '.KQ'); } }
+  else q = await BR.yahooChange(getJSON, s.symbol + (s.src === 'fx' ? '=X' : ''));
+  const name = s.name || s.symbol, c = q.chg;
+  const arrow = c == null ? '' : c > 0.05 ? `🔺${c.toFixed(2)}%` : c < -0.05 ? `🔻${Math.abs(c).toFixed(2)}%` : `– ${c.toFixed(2)}%`;
+  const my = state._alerts.filter(a => a.src === s.src && a.symbol === s.symbol).map(a => `${a.op === '>=' ? '≥' : '≤'} ${TA.fmt(a.price)}`);
+  return `💹 <b>${esc(name)}</b> ${TA.fmt(q.price)} ${arrow}` + (my.length ? `\n⏰ 알림: ${my.join(', ')}` : '') +
+    `\n<i>/now ${esc(name)} 분석 · /alert ${esc(name)} 가격 알림</i>`;
+}
 
 // ---------- 가격 알림 ----------
 state._alerts ||= [];
@@ -234,7 +265,7 @@ async function addAlert(args, find) {
   const pi = args.findIndex((a, i) => i > 0 && isSpec(a) && (a.endsWith('%') || parseNum(a.replace(/^[<>]=?/, ''))));
   if (pi < 1) return '사용법: /alert 종목 가격 [메모]\n예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전, /alert 삼성전자 &gt;70000, /alert NVDA -5%';
   const symQ = args.slice(0, pi).join(' '), spec = args[pi], note = args.slice(pi + 1).join(' ');
-  const s = find(symQ) || guessSrc(args[0]);
+  const s = find(symQ) || alias(symQ) || guessSrc(args[0]);
   let q;
   try { q = await quote(s); if (!(q.price > 0)) throw new Error('가격 없음'); } catch (e) { return `❌ ${esc(symQ)} 현재가를 못 가져왔습니다 (${esc(e.message)})`; }
   const pct = spec.endsWith('%') ? +spec.slice(0, -1) : null;
@@ -276,7 +307,7 @@ async function handle(cmd) {
   const find = q => CFG.symbols.find(s => s.symbol.toUpperCase() === q.toUpperCase() || (s.name && s.name === q));
   switch (c) {
     case '/start': case '/help': case '도움말':
-      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n⏰ <b>가격 알림</b> (30분마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등 · 퍼센트: /alert NVDA -5%</i>\n\n☀️ <b>브리핑</b> (매일 ${CFG.dailySummaryHourKST}시)\n/brief — 지금 브리핑 받기\n/weather [도시] — 날씨\n/city 도시 — 브리핑 도시 변경 (현재 ${esc(CFG.brief.city)})\n\n👀 <b>웹페이지 감시</b>\n/watch URL [키워드] — 변경 또는 키워드 등장/사라짐 알림\n/watches — 감시 목록\n/unwatch 번호 — 삭제\n\n<i>명령은 최대 30분 안에 처리됩니다.</i>`;
+      return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/status — 봇 상태\n\n💬 <b>그냥 종목 이름만 보내도</b> 현재가를 알려줘요 (예: 비트코인, 달러, 엔비디아, 삼성전자)\n/tf 1h|4h|1d|1w — 봉 단위 변경\n\n⏰ <b>가격 알림</b> (30분마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등 · 퍼센트: /alert NVDA -5%</i>\n\n☀️ <b>브리핑</b> (매일 ${CFG.dailySummaryHourKST}시)\n/brief — 지금 브리핑 받기\n/weather [도시] — 날씨\n/city 도시 — 브리핑 도시 변경 (현재 ${esc(CFG.brief.city)})\n\n👀 <b>웹페이지 감시</b>\n/watch URL [키워드] — 변경 또는 키워드 등장/사라짐 알림\n/watches — 감시 목록\n/unwatch 번호 — 삭제\n\n<i>${process.env.DAEMON_SINCE ? '⚡ 실시간 모드: 명령은 몇 초 안에 처리됩니다.' : '명령은 다음 실행 때 처리됩니다.'}</i>`;
     case '/list': return `📋 <b>관심종목</b> (${CFG.interval})\n` + CFG.symbols.map(s => `• ${esc(s.name || s.symbol)} <code>${s.symbol}</code> [${s.src}]`).join('\n');
     case '/add': {
       if (!args[0]) return '사용법: /add 종목 [이름]';
@@ -335,8 +366,25 @@ async function handle(cmd) {
       return `🗑 알림 삭제: ${alertLine(a, 0).replace(/^\d+\. /, '')}`;
     }
     case '/summary': forceSummary = true; return null;
+    case '/status': {
+      const ago = t => { if (!t) return '없음'; const m = Math.round((Date.now() - t) / 60e3); return m < 60 ? `${m}분 전` : `${Math.floor(m / 60)}시간 ${m % 60}분 전`; };
+      const since = +process.env.DAEMON_SINCE;
+      return `🤖 <b>봇 상태</b>\n` +
+        `모드: ${since ? `⚡ 실시간 (${ago(since)} 시작, 명령 즉시 응답)` : '⏳ 예약 실행 (응답이 늦을 수 있음)'}\n` +
+        `마지막 전체 분석: ${ago(state._fullAt)}\n` +
+        `관심종목 ${CFG.symbols.length}개 (${CFG.interval}) · 가격 알림 ${state._alerts.length}개 · 페이지 감시 ${state._watches.length}개\n` +
+        `아침 브리핑: 매일 ${CFG.dailySummaryHourKST}시 · ${esc(CFG.brief.city)}\n` +
+        `모의매매 보유 ${Object.keys(state._paper.positions).length}개 · 완료 ${state._paper.trades.length}회`;
+    }
     case '/paper': wantPaper = true; return null;
-    default: return c.startsWith('/') ? '모르는 명령어입니다. /help 를 보내보세요.' : null;
+    default: {
+      if (c.startsWith('/')) return '모르는 명령어입니다. /help 를 보내보세요.';
+      // 슬래시 없이 종목 이름만 보내면 시세 (관심종목, 별칭, 확실한 티커 형식만)
+      const t = cmd.trim();
+      const s = find(t) || alias(t) || (/^(KRW-[A-Z0-9]+|[A-Z0-9]{2,10}USDT|\d{6}|[A-Z]{1,5}|(USD|EUR|JPY|GBP|CNY|CHF)KRW)$/.test(t) ? guessSrc(t) : null);
+      if (!s) return t.length <= 20 ? `🤔 「${esc(t)}」 종목을 모르겠어요. 예: 비트코인, 달러, 삼성전자, NVDA\n명령어는 /help` : null;
+      try { return await priceCard(s); } catch (e) { return `❌ ${esc(t)} 시세를 못 가져왔습니다 (${esc(e.message)})`; }
+    }
   }
 }
 let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
@@ -347,13 +395,16 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
   for (const r of replies) await send(r);
   const hits = state._alerts.length ? await checkAlerts() : [];
   if (hits.length) await send(hits.join('\n\n'));
-  const pageHits = state._watches.length ? await checkWatches() : [];
+  // 실시간 모드에서는 daemon.js가 10분마다 RUN_WATCHES=1로 지정 (명령마다 페이지를 읽지 않도록)
+  const watchDue = !process.env.SCAN_MODE || process.env.RUN_WATCHES || process.env.MOCK_PAGE;
+  const pageHits = state._watches.length && watchDue ? await checkWatches() : [];
   for (const m of pageHits) await send(m);
   await registerCommands();
   if (cfgChanged) fs.writeFileSync(CFG_FILE, JSON.stringify(CFG, null, 2) + '\n');
 
   // 30분마다 실행되지만 전체 분석은 매시 첫 실행에서만 (명령 응답·요약 요청 시는 즉시)
-  const fullScan = new Date().getUTCMinutes() < 30 || forceSummary || wantPaper || process.env.FORCE_SUMMARY || cfgChanged;
+  const mode = process.env.SCAN_MODE;
+  const fullScan = mode === 'full' || (!mode && new Date().getUTCMinutes() < 30) || forceSummary || wantPaper || process.env.FORCE_SUMMARY || cfgChanged;
   const tf = CFG.interval, th = CFG.scoreThreshold;
   const rows = [], alerts = [], trades = [], errors = [], prices = {};
   if (fullScan) for (const s of CFG.symbols) {
@@ -378,6 +429,7 @@ let forceSummary = !!process.env.FORCE_SUMMARY, wantPaper = false;
       paperStep(key, name, cs, tf, trades);
     } catch (e) { errors.push(`${s.symbol}: ${e.message}`); }
   }
+  if (fullScan && rows.length) state._fullAt = Date.now();
   const kstHour = (new Date().getUTCHours() + 9) % 24, today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
   const daily = kstHour >= CFG.dailySummaryHourKST && state._lastSummary !== today; // 예약 실행이 건너뛰어져도 그날 첫 실행에서 보냄
   if (alerts.length) await send(`🔔 <b>신호 변화</b> (${tf})\n\n${alerts.join('\n\n')}`);

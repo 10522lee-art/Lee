@@ -61,7 +61,6 @@ async function check(w, fetcher = fetchPage) {
   if (page.title && !w.title) w.title = page.title;
   const lines = page.lines.slice(0, 5000);
   const h = hash(lines);
-  w.checked = Math.floor(Date.now() / 1000);
   if (w.keyword) {
     const kw = w.keyword.toLowerCase();
     const has = lines.some(l => l.toLowerCase().includes(kw));

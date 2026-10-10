@@ -114,4 +114,4 @@ function kstDateLabel(ms = Date.now()) {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()} (${DOW[d.getUTCDay()]})`;
 }
 
-module.exports = { geocode, weather, weatherText, markets, marketsText, kstDateLabel, wmo, CITIES, MARKETS };
+module.exports = { geocode, weather, weatherText, markets, marketsText, kstDateLabel, wmo, yahooChange, binanceChange, CITIES, MARKETS };

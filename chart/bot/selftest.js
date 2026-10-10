@@ -75,6 +75,26 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
   ok(/아침 브리핑/.test(out) && /브리핑 도시 변경: <b>파리/.test(out) && /\/watch URL/.test(out), '/brief /city /help');
   ok(JSON.parse(fs.readFileSync(WL, 'utf8')).brief.city === '파리', '도시 설정 저장');
 
+  out = bot(['/status'], { DAEMON_SINCE: String(Date.now() - 125 * 60e3) });
+  ok(/실시간 \(2시간 5분 전 시작/.test(out) && /가격 알림 0개/.test(out), '/status 실시간 표시');
+  ok(/예약 실행/.test(bot(['/status'])), '/status 예약 표시');
+  // 실시간 모드에서는 RUN_WATCHES 없으면 페이지를 읽지 않음
+  bot(['/watch https://example.net'], { MOCK_PAGE: 'a' });
+  out = execFileSync(process.execPath, [path.join(__dirname, 'scan.js')], { env: { ...process.env, TELEGRAM_BOT_TOKEN: '', DRY_RUN: '1', MOCK: '1', BOT_STATE: ST, BOT_WATCHLIST: WL, SCAN_MODE: 'light', WATCH_FETCH_FAIL: '' }, encoding: 'utf8' });
+  ok(/페이지 0개\(감시 1\)/.test(out) && /분석 0개/.test(out), 'light 모드: 전체 분석·페이지 감시 생략');
+  bot(['/unwatch all']);
+
+  out = bot(['달러', '/alert 비트코인 -5%', '비트코인', '안녕', 'hello world'], { SCAN_MODE: 'light' });
+  ok(/💹 <b>달러<\/b>/.test(out) && /💹 <b>비트코인<\/b>[^\n]*\n⏰ 알림: ≤ 95/.test(out) && /「안녕」 종목을 모르겠어요/.test(out) && state()._alerts[0].symbol === 'BTCUSDT', '별칭·이름만 보내기');
+  bot(['/unalert all']);
+
+  // ---------- daemon.js (짧게 실행) ----------
+  try {
+    const t0 = Date.now();
+    const d = execFileSync(process.execPath, [path.join(__dirname, 'daemon.js')], { env: { ...process.env, TELEGRAM_BOT_TOKEN: '', DRY_RUN: '1', MOCK: '1', NO_GIT: '1', BOT_STATE: ST, BOT_WATCHLIST: WL, DAEMON_MINUTES: '0.45' }, encoding: 'utf8', timeout: 90e3 });
+    ok(/실시간 모드 시작/.test(d) && /\[full\/시작\] .*종료코드 0 명령 .*분석 2개/.test(d) && /종료 — scan.js 1회/.test(d) && Date.now() - t0 < 60e3, 'daemon 시작·전체분석·종료', d.replace(/\n/g, ' / ').slice(0, 300));
+  } catch (e) { ok(false, 'daemon 실행', String(e.stdout || e.message).slice(-500)); }
+
   // ---------- 실제 API ----------
   if (process.env.LIVE) {
     const getJSON = async u => { const r = await fetch(u, { headers: { 'User-Agent': 'Mozilla/5.0 (chart-bot)' } }); if (!r.ok) throw new Error(`HTTP ${r.status} ${u}`); return r.json(); };
@@ -88,6 +108,10 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
     await tryIt('LIVE 지오코딩 Interlaken', () => BR.geocode(getJSON, 'Interlaken'), c => Math.abs(c.lat - 46.7) < 0.3);
     await tryIt('LIVE 날씨', async () => BR.weatherText({ name: '서울' }, await BR.weather(getJSON, await BR.geocode(getJSON, '서울'))), t => /오늘/.test(t) && !/NaN|undefined/.test(t));
     await tryIt('LIVE 웹페이지 읽기', async () => { const p = await WT.fetchPage('https://example.com'); console.log('   추출된 줄:', p.lines); return p; }, p => p.title === 'Example Domain' && p.lines.some(l => /documentation/.test(l)) && !p.lines.some(l => /[<>{}]/.test(l)));
+    try {
+      const o = bot(['달러', '비트코인', '리플', '삼성전자', '엔비디아', '코스피'], { MOCK: '', SCAN_MODE: 'light' });
+      ok((o.match(/💹/g) || []).length === 6 && !/❌|NaN|undefined/.test(o), 'LIVE 이름만 보내기 6종', o.replace(/\n/g, ' / ').slice(0, 700));
+    } catch (e) { ok(false, 'LIVE 이름만 보내기', e.message); }
     // 실제 데이터로 봇 명령 처리 (MOCK 끔)
     const wl = JSON.parse(fs.readFileSync(WL, 'utf8')); delete wl.brief; fs.writeFileSync(WL, JSON.stringify(wl));
     try {
