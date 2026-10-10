@@ -1,8 +1,8 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 2,
+  "score": -6,
   "verdict": "중립",
-  "tv": "중립",
+  "tv": "매수",
   "bar": 1791504000,
   "patterns": []
  },
@@ -16,9 +16,9 @@
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -2,
-  "verdict": "중립",
-  "tv": "중립",
+  "score": 18,
+  "verdict": "매수",
+  "tv": "매도",
   "bar": 1791504000,
   "patterns": []
  },
@@ -40,14 +40,14 @@
   "score": 33,
   "verdict": "매수",
   "tv": "매수",
-  "bar": 1791466200,
+  "bar": 1791552600,
   "patterns": []
  },
  "us:QQQ:1d": {
   "score": 45,
   "verdict": "매수",
   "tv": "매수",
-  "bar": 1791466200,
+  "bar": 1791552600,
   "patterns": [
    "이중바닥"
   ]
@@ -103,8 +103,8 @@
    "upbit:KRW-XRP:1d": 1791417600,
    "kr:005930:1d": 1791417600,
    "kr:000660:1d": 1791417600,
-   "us:NVDA:1d": 1791379800,
-   "us:QQQ:1d": 1791379800
+   "us:NVDA:1d": 1791466200,
+   "us:QQQ:1d": 1791466200
   }
  },
  "_offset": 30199083
