@@ -1,7 +1,10 @@
 name: 차트 알림 봇
+# 실시간 모드: 한 번 실행되면 약 6시간 상주하며 텔레그램 명령에 바로 응답하고,
+# 끝날 때 자기 자신을 다시 실행시켜 24시간 이어집니다. (공개 저장소라 Actions 시간 무료)
+# 멈추려면: Actions 탭 → 차트 알림 봇 → ··· → Disable workflow
 on:
   schedule:
-    - cron: '7,37 * * * *'   # 30분마다 (명령어 처리), 전체 분석은 매시 7분
+    - cron: '7 */3 * * *'   # 혹시 이어달리기가 끊겼을 때 되살리는 안전장치
   workflow_dispatch:
     inputs:
       summary:
@@ -10,24 +13,35 @@ on:
         default: true
 permissions:
   contents: write
-concurrency: chart-alert
+  actions: write
+concurrency:
+  group: chart-alert
+  cancel-in-progress: false
 jobs:
   scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: 분석 및 알림
+      - name: 실시간 봇 (약 5시간 40분)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FORCE_SUMMARY: ${{ github.event_name == 'workflow_dispatch' && inputs.summary && '1' || '' }}
-        run: node chart/bot/scan.js
-      - name: 상태 저장
         run: |
           git config user.name "chart-bot"
           git config user.email "chart-bot@users.noreply.github.com"
+          node chart/bot/daemon.js
+      - name: 다음 실행 예약
+        if: ${{ !cancelled() && github.ref_name == 'master' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run chart-alert.yml --ref "${{ github.ref_name }}" -f summary=false
+      - name: 상태 저장 (실패 대비)
+        if: always()
+        run: |
           git add chart/bot/state.json chart/bot/watchlist.json
           git diff --cached --quiet || (git commit -m "chart-bot: update state [skip ci]" && git pull --rebase -q && git push)
