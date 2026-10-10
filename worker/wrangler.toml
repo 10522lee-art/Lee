@@ -1,0 +1,20 @@
+# Cloudflare Workers 설정 — 배포는 .github/workflows/worker-deploy.yml 이 자동으로 함
+name = "lee-bot"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+# 5분마다: 가격 알림, 페이지 감시, 종목 1개씩 분석(무료 요금제 CPU 한도에 맞춰 나눠서), 브리핑/여행 알림
+[triggers]
+crons = ["*/5 * * * *"]
+
+# 봇 상태 저장 + 동시 실행 방지 (한 개의 Durable Object가 모든 요청을 순서대로 처리)
+[[durable_objects.bindings]]
+name = "BOT"
+class_name = "Bot"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Bot"]
+
+[observability]
+enabled = true

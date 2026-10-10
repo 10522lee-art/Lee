@@ -1,0 +1,74 @@
+name: 봇 클라우드 배포 (Cloudflare Workers)
+# CLOUDFLARE_API_TOKEN 시크릿이 있으면 봇을 Cloudflare Workers에 배포하고,
+# 처음 한 번은 GitHub Actions 봇(차트 알림 봇)을 끄고 데이터를 옮긴 뒤 텔레그램 웹훅을 연결합니다.
+# 시크릿이 없으면 아무것도 하지 않고 통과합니다. 설정 방법: chart/bot/README.md
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'worker/**'
+      - 'chart/analysis.js'
+      - 'chart/bot/core.js'
+      - 'chart/bot/brief.js'
+      - 'chart/bot/watch.js'
+      - 'chart/bot/trip.js'
+      - 'chart/bot/trip.json'
+      - '.github/workflows/worker-deploy.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: write   # 옛 워크플로 끄기·실행 취소
+concurrency: worker-deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Cloudflare 토큰 확인
+        id: gate
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice title=Cloudflare 미설정::CLOUDFLARE_API_TOKEN 시크릿이 없어 배포를 건너뜁니다. 설정 방법은 chart/bot/README.md 를 보세요."
+            echo "go=0" >> "$GITHUB_OUTPUT"
+          elif [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "::error::TELEGRAM_BOT_TOKEN 시크릿이 없습니다"; exit 1
+          else
+            echo "go=1" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.go == '1'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.go == '1'
+        with:
+          node-version: 22
+      - name: 설치
+        if: steps.gate.outputs.go == '1'
+        working-directory: worker
+        run: npm ci --no-audit --no-fund
+      - name: 배포
+        id: deploy
+        if: steps.gate.outputs.go == '1'
+        working-directory: worker
+        run: |
+          set -o pipefail
+          npx wrangler deploy 2>&1 | tee deploy.log
+          printf '%s' "$TELEGRAM_BOT_TOKEN" | npx wrangler secret put TELEGRAM_BOT_TOKEN
+          URL=$(grep -oE 'https://[A-Za-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          if [ -z "$URL" ]; then
+            echo "::error title=workers.dev 주소 없음::Cloudflare 대시보드 → Workers & Pages 에 한 번 들어가서 workers.dev 서브도메인을 정해주세요"; exit 1
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "### ☁️ 배포 완료: $URL" >> "$GITHUB_STEP_SUMMARY"
+      - name: 이사 · 웹훅 연결
+        if: steps.gate.outputs.go == '1'
+        env:
+          WORKER_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          git config user.name "chart-bot"
+          git config user.email "chart-bot@users.noreply.github.com"
+          node worker/scripts/switch.js

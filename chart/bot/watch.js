@@ -1,5 +1,4 @@
-// 웹페이지 변경 감지: HTML → 텍스트 줄 목록 → 이전과 비교
-const crypto = require('crypto');
+// 웹페이지 변경 감지: HTML → 텍스트 줄 목록 → 이전과 비교 (Node·Cloudflare Workers 공용, 의존성 없음)
 const MAX_BYTES = 2_000_000, MAX_LINES = 300, MAX_LINE = 160;
 
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', middot: '·', hellip: '…', ndash: '–', mdash: '—', lsquo: '‘', rsquo: '’', ldquo: '“', rdquo: '”', copy: '©', reg: '®', trade: '™', won: '₩', euro: '€', yen: '¥', pound: '£' };
@@ -27,7 +26,13 @@ function htmlToLines(html) {
   }
   return out;
 }
-const hash = lines => crypto.createHash('sha1').update(lines.join('\n')).digest('hex').slice(0, 16);
+// 64비트 FNV-1a (변경 여부 판단용이라 암호학적 해시 불필요)
+function hash(lines) {
+  let h1 = 0x811c9dc5, h2 = 0xcbf29ce4;
+  const s = lines.join('\n');
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ (c >>> 4 | c << 3), 16777619); }
+  return (h1 >>> 0).toString(16).padStart(8, '0') + (h2 >>> 0).toString(16).padStart(8, '0');
+}
 
 function diff(oldLines, newLines) {
   const a = new Set(oldLines), b = new Set(newLines);
@@ -35,15 +40,15 @@ function diff(oldLines, newLines) {
 }
 
 async function fetchPage(url, ua) {
-  const r = await fetch(url, { headers: { 'User-Agent': ua || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36', 'Accept-Language': 'ko,en;q=0.8' }, redirect: 'follow', signal: AbortSignal.timeout(20000) });
+  const r = await fetch(url, { headers: { 'User-Agent': ua || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36', 'Accept-Language': 'ko,en;q=0.8' }, redirect: 'follow', signal: AbortSignal.timeout(12000) });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const buf = Buffer.from(await r.arrayBuffer()).subarray(0, MAX_BYTES);
+  const buf = new Uint8Array(await r.arrayBuffer()).subarray(0, MAX_BYTES);
   const ct = r.headers.get('content-type') || '';
   // charset 처리 (EUC-KR 사이트 대비)
   let cs = (ct.match(/charset=([\w-]+)/i) || [])[1];
-  if (!cs) cs = (buf.subarray(0, 4000).toString('latin1').match(/<meta[^>]+charset=["']?([\w-]+)/i) || [])[1];
+  if (!cs) cs = (new TextDecoder('latin1').decode(buf.subarray(0, 4000)).match(/<meta[^>]+charset=["']?([\w-]+)/i) || [])[1];
   let text;
-  try { text = new TextDecoder(cs || 'utf-8').decode(buf); } catch { text = buf.toString('utf8'); }
+  try { text = new TextDecoder(cs || 'utf-8').decode(buf); } catch { text = new TextDecoder('utf-8').decode(buf); }
   const title = decode((text.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').replace(/\s+/g, ' ').trim();
   const lines = /json|text\/plain/.test(ct) ? text.split(/\n/).map(l => l.trim()).filter(Boolean) : htmlToLines(text);
   return { lines, title };

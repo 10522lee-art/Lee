@@ -102,13 +102,12 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
   ok(/오늘 이동: 🍷 포르투 → 💃 <b>세비야/.test(trip('2026-11-20T08:10:00Z', [])), '이동일 아침');
   out = trip('2026-12-08T02:00:00Z', ['/export']);
   ok(/여행 끝/.test(out) && /날짜,시각\(한국\),도시/.test(out) && /포르투,커피,커피,3.2,EUR/.test(out), '귀국 후 정리 + CSV');
-  // 암호화: 토큰이 있으면 파일에 평문이 남지 않아야 함
+  // 암호화: 토큰이 있으면 파일에 평문이 남지 않아야 함 (Node 저장 계층 secure.js)
   {
-    const createTrip = require('./trip.js'), ef = path.join(tmp, 'enc.json'), st = {};
-    const mk = tok => createTrip({ getJSON: null, BR, state: st, esc: x => x, token: tok, sendDoc: null, now: () => Date.parse('2026-11-19T10:00:00Z'), dataFile: ef });
-    await mk('secret-token').text('점심 18유로');
+    const SEC = require('./secure.js'), ef = path.join(tmp, 'enc.json');
+    SEC.saveTrip(ef, 'secret-token', { spends: [{ text: '점심', amount: 18 }] });
     const raw = fs.readFileSync(ef, 'utf8');
-    ok(!/점심/.test(raw) && JSON.parse(raw).iv && mk('secret-token')._data().spends[0].text === '점심' && mk('wrong-token')._data().spends.length === 0, '지출 데이터 암호화 저장');
+    ok(!/점심/.test(raw) && JSON.parse(raw).iv && SEC.loadTrip(ef, 'secret-token').spends[0].text === '점심' && SEC.loadTrip(ef, 'wrong-token').spends.length === 0, '지출 데이터 암호화 저장');
   }
 
   // ---------- daemon.js (짧게 실행) ----------

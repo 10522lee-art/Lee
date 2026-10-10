@@ -1,0 +1,13 @@
+{
+  "name": "lee-bot-worker",
+  "private": true,
+  "description": "텔레그램 봇 Cloudflare Workers 버전 (chart/bot/core.js 공용)",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run --outdir dist"
+  },
+  "devDependencies": {
+    "wrangler": "4.140.0"
+  }
+}
