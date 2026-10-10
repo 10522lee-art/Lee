@@ -87,7 +87,7 @@ ok(d.added.join() === 'd' && d.removed.join() === 'b', 'diff 추가/삭제');
     await tryIt('LIVE 시세 묶음', () => BR.markets(getJSON), rows => rows.every(r => !r.err && r.price > 0) && rows.some(r => r.t && Math.abs(r.chg) > 0.001));
     await tryIt('LIVE 지오코딩 Interlaken', () => BR.geocode(getJSON, 'Interlaken'), c => Math.abs(c.lat - 46.7) < 0.3);
     await tryIt('LIVE 날씨', async () => BR.weatherText({ name: '서울' }, await BR.weather(getJSON, await BR.geocode(getJSON, '서울'))), t => /오늘/.test(t) && !/NaN|undefined/.test(t));
-    await tryIt('LIVE 웹페이지 읽기', () => WT.fetchPage('https://example.com'), p => p.title === 'Example Domain' && p.lines.some(l => /Example Domain/.test(l)) && p.lines.some(l => /documentation/.test(l)));
+    await tryIt('LIVE 웹페이지 읽기', async () => { const p = await WT.fetchPage('https://example.com'); console.log('   추출된 줄:', p.lines); return p; }, p => p.title === 'Example Domain' && p.lines.some(l => /documentation/.test(l)) && !p.lines.some(l => /[<>{}]/.test(l)));
     // 실제 데이터로 봇 명령 처리 (MOCK 끔)
     const wl = JSON.parse(fs.readFileSync(WL, 'utf8')); delete wl.brief; fs.writeFileSync(WL, JSON.stringify(wl));
     try {
