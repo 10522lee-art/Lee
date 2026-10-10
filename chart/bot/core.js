@@ -11,7 +11,7 @@ const BAR_SEC = { '1h': 3600, '4h': 14400, '1d': 86400, '1w': 604800 };
 const MENU = [['help', '도움말'], ['brief', '아침 브리핑 지금 받기'], ['alert', '가격 알림 추가 (종목 가격)'], ['alerts', '가격 알림 목록'], ['unalert', '가격 알림 삭제'],
   ['watch', '웹페이지 감시 추가 (URL [키워드])'], ['watches', '웹페이지 감시 목록'], ['unwatch', '웹페이지 감시 삭제'], ['weather', '날씨 (도시)'], ['city', '브리핑 도시 변경'],
   ['now', '종목 바로 분석'], ['summary', '관심종목 요약'], ['status', '봇 상태'], ['list', '관심종목 목록'], ['add', '관심종목 추가'], ['remove', '관심종목 삭제'], ['paper', '모의매매 성과'], ['tf', '봉 단위 변경'],
-  ['trip', '✈️ 여행 일정·D-day'], ['today', '✈️ 오늘 도시·날씨·지출'], ['spent', '✈️ 지출 정리 (오늘/전체/도시)'], ['undo', '✈️ 마지막 지출 취소'],
+  ['dash', '📊 대시보드 (그래프)'], ['trip', '✈️ 여행 일정·D-day'], ['today', '✈️ 오늘 도시·날씨·지출'], ['spent', '✈️ 지출 정리 (오늘/전체/도시)'], ['undo', '✈️ 마지막 지출 취소'],
   ['check', '✈️ 출발 전 체크리스트'], ['done', '✈️ 체크리스트 완료'], ['won', '✈️ 환산 (50유로)'], ['budget', '✈️ 예산 설정'], ['export', '✈️ 지출 엑셀(CSV) 받기']];
 
 // 한글/약칭 → 종목 (/now 엔비디아, /alert 비트코인 -5%, 그냥 '달러'라고 보내기)
@@ -319,7 +319,7 @@ module.exports = function createBot(o) {
   function helpMsg() {
     const fast = env.mode === 'cloud' || env.mode === 'realtime';
     return `🤖 <b>명령어</b>\n/list — 관심종목 보기\n/add 종목 [이름] — 추가 (예: /add TSLA, /add 035420 네이버, /add SOLUSDT, /add KRW-ETH)\n/remove 종목 — 삭제\n/now 종목 — 지금 바로 분석\n/summary — 전체 요약\n/paper — 모의매매 성과\n/status — 봇 상태\n` +
-      `\n✈️ <b>여행 비서</b> (${TRIP.cfg.cities[0][0].slice(5).replace('-', '/')}~ ${esc(TRIP.cfg.name)})\n그냥 <b>점심 18유로</b>, <b>택시 12.5chf</b>, <b>커피 3.2</b>(여행 중) 보내면 지출 기록\n50유로 얼마 — 환산 · /undo — 방금 기록 취소\n/trip 일정 · /today 오늘 · /spent [오늘|어제|전체|도시]\n/check 체크리스트 · /done 번호 · /budget 300만원 · /export 엑셀\n<i>여행 중엔 현지 ${TRIP.cfg.morningHour}시 아침 브리핑, ${TRIP.cfg.eveningHour}시 지출 정리가 자동으로 와요</i>\n` +
+      `\n✈️ <b>여행 비서</b> (${TRIP.cfg.cities[0][0].slice(5).replace('-', '/')}~ ${esc(TRIP.cfg.name)})\n그냥 <b>점심 18유로</b>, <b>택시 12.5chf</b>, <b>커피 3.2</b>(여행 중) 보내면 지출 기록\n50유로 얼마 — 환산 · /undo — 방금 기록 취소\n/trip 일정 · /today 오늘 · /spent [오늘|어제|전체|도시]\n/check 체크리스트 · /done 번호 · /budget 300만원 · /export 엑셀 · /dash 그래프\n<i>여행 중엔 현지 ${TRIP.cfg.morningHour}시 아침 브리핑, ${TRIP.cfg.eveningHour}시 지출 정리가 자동으로 와요</i>\n` +
       `\n💬 <b>그냥 종목 이름만 보내도</b> 현재가를 알려줘요 (예: 비트코인, 달러, 엔비디아, 삼성전자)\n/tf 1h|4h|1d|1w — 봉 단위 변경\n` +
       `\n⏰ <b>가격 알림</b> (${fast ? '5분' : '30분'}마다 확인, 1회성)\n/alert 종목 가격 [메모] — 예: /alert BTCUSDT 90000, /alert USDKRW &lt;1350 환전\n/alerts — 알림 목록\n/unalert 번호 — 삭제 (/unalert all 전체)\n<i>환율: USDKRW, EURKRW, JPYKRW 등 · 퍼센트: /alert NVDA -5%</i>\n` +
       `\n☀️ <b>브리핑</b> (매일 ${CFG.dailySummaryHourKST}시)\n/brief — 지금 브리핑 받기\n/weather [도시] — 날씨\n/city 도시 — 브리핑 도시 변경 (현재 ${esc(CFG.brief.city)})\n` +
@@ -388,6 +388,8 @@ module.exports = function createBot(o) {
         const [a] = state._alerts.splice(i, 1);
         return `🗑 알림 삭제: ${alertLine(a, 0).replace(/^\d+\. /, '')}`;
       }
+      case '/dash': case '/dashboard':
+        return env.dashUrl ? `📊 <b>나만의 대시보드</b>\n여행 지출 그래프 · 예산 · 일정 · 체크리스트 · 알림 · 관심종목\n\n<a href="${env.dashUrl}">대시보드 열기</a>\n<i>비밀 링크라 다른 사람에게 보내지 마세요</i>` : '📊 대시보드는 Cloudflare 버전에서 쓸 수 있어요 (chart/bot/README.md의 "Cloudflare로 옮기는 법")';
       case '/summary': flags.forceSummary = true; return null;
       case '/paper': flags.wantPaper = true; return null;
       case '/status':

@@ -6,6 +6,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import createBot from '../../chart/bot/core.js';
 import DEFAULT_CFG from '../../chart/bot/watchlist.json';
+import renderDashboard from '../../chart/bot/dash.js';
 
 const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
 // 비밀값은 봇 토큰에서 파생 (chart/bot/secure.js의 derive와 같은 방식) → 따로 시크릿을 만들 필요 없음
@@ -19,7 +20,7 @@ export default {
     if (url.pathname === '/tg' && req.method === 'POST') {
       if (req.headers.get('X-Telegram-Bot-Api-Secret-Token') !== await webhookSecret(env.TELEGRAM_BOT_TOKEN)) return new Response('forbidden', { status: 403 });
       const update = await req.json();
-      ctx.waitUntil(stub.onUpdate(update)); // 텔레그램에는 바로 200 (재전송 방지), 처리는 이어서
+      ctx.waitUntil(stub.onUpdate(update, url.origin)); // 텔레그램에는 바로 200 (재전송 방지), 처리는 이어서
       return new Response('ok');
     }
     if (url.pathname.startsWith('/api/')) {
@@ -32,6 +33,12 @@ export default {
       return json({ error: 'not found' }, 404);
     }
     if (url.pathname === '/health') return json(await stub.health());
+    // 개인 대시보드: /d/<봇 토큰에서 파생한 비밀 키>  (텔레그램 /dash 로 링크 받기)
+    if (url.pathname.startsWith('/d/')) {
+      if (url.pathname.slice(3) !== (await derive(env.TELEGRAM_BOT_TOKEN, 'dash')).slice(0, 32)) return new Response('not found', { status: 404 });
+      const d = await stub.exportData();
+      return new Response(renderDashboard({ cfg: d.cfg || DEFAULT_CFG, state: d.state || {}, trip: d.trip || { spends: [] } }), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex', 'referrer-policy': 'no-referrer' } });
+    }
     return new Response('lee-bot ✓', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   },
   async scheduled(ev, env, ctx) {
@@ -55,7 +62,7 @@ export class Bot extends DurableObject {
   }
 
   // 저장소에서 읽어 봇을 만들고 fn 실행 후 저장. 큐로 한 번에 하나씩만 실행 → 동시에 와도 데이터 안 꼬임
-  run(fn) {
+  run(fn, origin) {
     const job = this.queue.then(async () => {
       const m = await this.ctx.storage.get(['cfg', 'state', 'trip']);
       const cfg = m.get('cfg') || structuredClone(DEFAULT_CFG), state = m.get('state') || {}, trip = m.get('trip') || { spends: [] };
@@ -72,7 +79,10 @@ export class Bot extends DurableObject {
         const r = await fetch(`https://api.telegram.org/bot${this.token}/sendDocument`, { method: 'POST', body: fd }).then(r => r.json());
         if (!r.ok) throw new Error(`텔레그램 sendDocument 실패: ${r.description}`);
       };
-      const bot = createBot({ cfg, state, tripData: trip, send, sendDoc, env: { mode: 'cloud', mock: this.mock, candles: 300, fetchTimeout: 6000 } });
+      if (origin) state._base = origin; // 대시보드 링크용 워커 주소
+      this.dashKey ||= (await derive(this.token, 'dash')).slice(0, 32);
+      const dashUrl = state._base ? `${state._base}/d/${this.dashKey}` : null;
+      const bot = createBot({ cfg, state, tripData: trip, send, sendDoc, env: { mode: 'cloud', mock: this.mock, candles: 300, fetchTimeout: 6000, dashUrl } });
       let result;
       try { result = await fn(bot, state); }
       catch (e) { console.error('처리 실패', e.stack || e); result = { error: String(e.message || e) }; }
@@ -85,7 +95,7 @@ export class Bot extends DurableObject {
   }
 
   // 텔레그램 메시지 1개
-  onUpdate(update) {
+  onUpdate(update, origin) {
     return this.run(async (bot, state) => {
       const m = update.message || update.edited_message;
       if (!m?.chat || !m.text) return { skipped: true };
@@ -100,7 +110,7 @@ export class Bot extends DurableObject {
       await bot.afterCommands();
       if (!this.dry) await bot.registerCommands((method, body) => this.tg(method, body));
       return { ok: true };
-    });
+    }, origin);
   }
 
   // 5분마다. 종목은 한 번에 1개씩 돌아가며 분석 (무료 요금제 CPU 한도 안에서), 페이지 감시는 격회로 2개씩

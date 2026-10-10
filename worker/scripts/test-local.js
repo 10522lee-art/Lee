@@ -55,6 +55,14 @@ const outbox = async () => (await adm('/api/export')).state?._outbox || [];
   ob = await outbox();
   ok(/관심종목 요약/.test(ob.at(-1)) && /분석 대기/.test(ob.at(-1)) && !/BTCUSDT — 분석 대기/.test(ob.at(-1)), '요약: 분석된 종목 + 대기 종목 표시');
 
+  // 대시보드: /dash 로 비밀 링크 → 열면 HTML, 틀린 키는 404
+  await msg('/dash'); await sleep(300);
+  const link = ((await outbox()).at(-1).match(/href="([^"]+\/d\/[0-9a-f]{32})"/) || [])[1];
+  ok(link && link.startsWith(W), '/dash 비밀 링크', String((await outbox()).at(-1)).slice(0, 200));
+  const page = link ? await fetch(link).then(async r => ({ status: r.status, ct: r.headers.get('content-type'), text: await r.text() })) : {};
+  ok(page.status === 200 && /text\/html/.test(page.ct) && /대시보드/.test(page.text) && /공항버스/.test(page.text) && /기념품/.test(page.text) && /비트코인/.test(page.text), '대시보드 페이지 내용');
+  ok((await fetch(`${W}/d/${'0'.repeat(32)}`)).status === 404, '틀린 대시보드 키 404');
+
   console.log(`\n${pass} 통과, ${fail} 실패`);
   dev.kill('SIGINT'); await sleep(500); dev.kill('SIGKILL');
   fs.rmSync(path.join(dir, '.dev.vars'), { force: true });
