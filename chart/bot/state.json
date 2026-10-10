@@ -110,5 +110,6 @@
  "_offset": 30199083,
  "_watches": [],
  "_alerts": [],
- "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,list,add,remove,paper,tf"
+ "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf",
+ "_fullAt": 1791608680935
 }
