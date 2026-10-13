@@ -23,7 +23,7 @@
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -17,
+  "score": -20,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1791849600,
@@ -32,7 +32,7 @@
   ]
  },
  "kr:000660:1d": {
-  "score": -29,
+  "score": -30,
   "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1791849600,
@@ -121,43 +121,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1791871623631,
+ "_fullAt": 1791875227456,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 83,581  +1 중립 | TV 매수",
-   "px": 83580.92,
-   "at": 1791871621883
+   "line": "⚪ <b>BTCUSDT</b> 83,707  +1 중립 | TV 매수",
+   "px": 83707.16,
+   "at": 1791875225798
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,528  -13 중립 | TV 중립",
-   "px": 2528.49,
-   "at": 1791871622042
+   "line": "⚪ <b>ETHUSDT</b> 2,530  -13 중립 | TV 중립",
+   "px": 2530.34,
+   "at": 1791875225960
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,858  -25 매도 | TV 매도",
-   "px": 1858,
-   "at": 1791871623073
+   "line": "🔴 <b>KRW-XRP</b> 1,854  -25 매도 | TV 매도",
+   "px": 1854,
+   "at": 1791875226887
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 230,750  -17 매도 | TV 매도",
-   "px": 230750,
-   "at": 1791871623297
+   "line": "🔴 <b>삼성전자</b> 232,000  -20 매도 | TV 매도",
+   "px": 232000,
+   "at": 1791875227107
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,444,000  -29 매도 | TV 적극 매도",
-   "px": 1444000,
-   "at": 1791871623411
+   "line": "🔴 <b>SK하이닉스</b> 1,443,000  -30 매도 | TV 적극 매도",
+   "px": 1443000,
+   "at": 1791875227210
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 226.32  +8 중립 | TV 중립",
    "px": 226.32000732421875,
-   "at": 1791871623516
+   "at": 1791875227355
   },
   "us:QQQ:1d": {
    "line": "🟢 <b>Invesco QQQ Trust, Series 1</b> 746.04  +34 매수 | TV 매수",
    "px": 746.0399780273438,
-   "at": 1791871623631
+   "at": 1791875227456
   }
  }
 }
