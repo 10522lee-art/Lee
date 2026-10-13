@@ -1,8 +1,8 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -15,
-  "verdict": "매도",
-  "tv": "중립",
+  "score": -8,
+  "verdict": "중립",
+  "tv": "매수",
   "bar": 1791849600,
   "patterns": []
  },
@@ -25,7 +25,7 @@
  "kr:005930:1d": {
   "score": -17,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1791849600,
   "patterns": [
    "이중천장"
@@ -121,43 +121,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1791859944055,
+ "_fullAt": 1791860827938,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 82,831  -15 매도 | TV 중립",
-   "px": 82830.83,
-   "at": 1791859941766
+   "line": "⚪ <b>BTCUSDT</b> 82,890  -8 중립 | TV 매수",
+   "px": 82890.01,
+   "at": 1791860825894
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,484  -30 매도 | TV 중립",
-   "px": 2483.63,
-   "at": 1791859941925
+   "line": "🔴 <b>ETHUSDT</b> 2,490  -30 매도 | TV 중립",
+   "px": 2490.46,
+   "at": 1791860826058
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,846  -25 매도 | TV 매도",
-   "px": 1846,
-   "at": 1791859943249
+   "line": "🔴 <b>KRW-XRP</b> 1,852  -25 매도 | TV 매도",
+   "px": 1852,
+   "at": 1791860827230
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 230,500  -17 매도 | TV 매도",
-   "px": 230500,
-   "at": 1791859943593
+   "line": "🔴 <b>삼성전자</b> 228,500  -17 매도 | TV 적극 매도",
+   "px": 228500,
+   "at": 1791860827462
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,460,000  -29 매도 | TV 적극 매도",
-   "px": 1460000,
-   "at": 1791859943798
+   "line": "🔴 <b>SK하이닉스</b> 1,452,000  -29 매도 | TV 적극 매도",
+   "px": 1452000,
+   "at": 1791860827677
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 226.32  +8 중립 | TV 중립",
    "px": 226.32000732421875,
-   "at": 1791859943919
+   "at": 1791860827792
   },
   "us:QQQ:1d": {
    "line": "🟢 <b>Invesco QQQ Trust, Series 1</b> 746.04  +34 매수 | TV 매수",
    "px": 746.0399780273438,
-   "at": 1791859944055
+   "at": 1791860827938
   }
  }
 }
