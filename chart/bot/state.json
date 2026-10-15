@@ -1,13 +1,13 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -20,
+  "score": -15,
   "verdict": "매도",
   "tv": "중립",
   "bar": 1792022400,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -10,
+  "score": -6,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1792022400,
@@ -126,43 +126,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792076826941,
+ "_fullAt": 1792080427305,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 82,071  -20 매도 | TV 중립",
-   "px": 82071.15,
-   "at": 1792076825315
+   "line": "🔴 <b>BTCUSDT</b> 82,462  -15 매도 | TV 중립",
+   "px": 82462,
+   "at": 1792080425642
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,418  -10 중립 | TV 매도",
-   "px": 2418.43,
-   "at": 1792076825495
+   "line": "⚪ <b>ETHUSDT</b> 2,444  -6 중립 | TV 매도",
+   "px": 2443.87,
+   "at": 1792080425818
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,799  -9 중립 | TV 매도",
-   "px": 1799,
-   "at": 1792076826463
+   "line": "⚪ <b>KRW-XRP</b> 1,809  -9 중립 | TV 매도",
+   "px": 1809,
+   "at": 1792080426740
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 232,000  -26 매도 | TV 매도",
    "px": 232000,
-   "at": 1792076826579
+   "at": 1792080426945
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,419,000  -29 매도 | TV 매도",
    "px": 1419000,
-   "at": 1792076826697
+   "at": 1792080427051
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 216.79  +8 중립 | TV 매도",
-   "px": 216.78500366210938,
-   "at": 1792076826813
+   "line": "⚪ <b>NVIDIA Corporation</b> 217.60  +8 중립 | TV 매도",
+   "px": 217.60499572753906,
+   "at": 1792080427203
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 724.34  +11 중립 | TV 매도",
-   "px": 724.3350219726562,
-   "at": 1792076826941
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 724.66  +11 중립 | TV 매도",
+   "px": 724.6599731445312,
+   "at": 1792080427305
   }
  }
 }
