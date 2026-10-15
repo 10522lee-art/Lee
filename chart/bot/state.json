@@ -1,18 +1,21 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -20,
+  "score": -19,
   "verdict": "매도",
-  "tv": "매도",
-  "bar": 1792022400,
-  "patterns": []
- },
- "binance:ETHUSDT:1d": {
-  "score": -13,
-  "verdict": "중립",
   "tv": "매도",
   "bar": 1792022400,
   "patterns": [
    "이중천장"
+  ]
+ },
+ "binance:ETHUSDT:1d": {
+  "score": -15,
+  "verdict": "매도",
+  "tv": "매도",
+  "bar": 1792022400,
+  "patterns": [
+   "이중천장",
+   "헤드앤숄더"
   ]
  },
  "upbit:KRW-XRP:1d": {
@@ -126,43 +129,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792066027454,
+ "_fullAt": 1792069623247,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 80,945  -20 매도 | TV 매도",
-   "px": 80944.74,
-   "at": 1792066025676
+   "line": "🔴 <b>BTCUSDT</b> 80,601  -19 매도 | TV 매도",
+   "px": 80600.53,
+   "at": 1792069621569
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,364  -13 중립 | TV 매도",
-   "px": 2363.91,
-   "at": 1792066025854
+   "line": "🔴 <b>ETHUSDT</b> 2,354  -15 매도 | TV 매도",
+   "px": 2353.57,
+   "at": 1792069621747
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,765  -28 매도 | TV 적극 매도",
-   "px": 1765,
-   "at": 1792066026817
+   "line": "🔴 <b>KRW-XRP</b> 1,759  -28 매도 | TV 적극 매도",
+   "px": 1759,
+   "at": 1792069622650
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 210,000  -19 매도 | TV 적극 매도",
    "px": 210000,
-   "at": 1792066027096
+   "at": 1792069622898
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,262,000  -18 매도 | TV 적극 매도",
    "px": 1262000,
-   "at": 1792066027198
+   "at": 1792069622987
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 221.30  +3 중립 | TV 매도",
    "px": 221.3000030517578,
-   "at": 1792066027287
+   "at": 1792069623146
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 728.95  +11 중립 | TV 매도",
    "px": 728.9500122070312,
-   "at": 1792066027454
+   "at": 1792069623247
   }
  }
 }
