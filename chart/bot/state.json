@@ -1,25 +1,24 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -20,
+  "score": -24,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "중립",
   "bar": 1792022400,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -15,
+  "score": -18,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792022400,
   "patterns": [
-   "이중천장",
-   "헤드앤숄더"
+   "이중천장"
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -28,
+  "score": -33,
   "verdict": "매도",
-  "tv": "적극 매도",
+  "tv": "매도",
   "bar": 1792022400,
   "patterns": []
  },
@@ -127,43 +126,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792048027618,
+ "_fullAt": 1792051623207,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 80,884  -20 매도 | TV 매도",
-   "px": 80884.01,
-   "at": 1792048025801
+   "line": "🔴 <b>BTCUSDT</b> 81,419  -24 매도 | TV 중립",
+   "px": 81419.19,
+   "at": 1792051621738
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,357  -15 매도 | TV 매도",
-   "px": 2356.95,
-   "at": 1792048025980
+   "line": "🔴 <b>ETHUSDT</b> 2,376  -18 매도 | TV 매도",
+   "px": 2375.52,
+   "at": 1792051621917
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,770  -28 매도 | TV 적극 매도",
-   "px": 1770,
-   "at": 1792048027230
+   "line": "🔴 <b>KRW-XRP</b> 1,776  -33 매도 | TV 매도",
+   "px": 1776,
+   "at": 1792051622747
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 210,000  -19 매도 | TV 적극 매도",
    "px": 210000,
-   "at": 1792048027344
+   "at": 1792051622861
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,262,000  -18 매도 | TV 적극 매도",
    "px": 1262000,
-   "at": 1792048027431
+   "at": 1792051622946
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 221.30  +3 중립 | TV 매도",
    "px": 221.3000030517578,
-   "at": 1792048027525
+   "at": 1792051623069
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 728.95  +11 중립 | TV 매도",
    "px": 728.9500122070312,
-   "at": 1792048027617
+   "at": 1792051623207
   }
  }
 }
