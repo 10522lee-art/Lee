@@ -9,6 +9,7 @@ const dir = path.join(__dirname, '..');
 let pass = 0, fail = 0;
 const ok = (c, name, extra = '') => { c ? pass++ : fail++; console.log(`${c ? '✅' : '❌'} ${name}${!c && extra ? ' — ' + extra : ''}`); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const KST_TODAY = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()); // '오늘 지출'에 잡히도록 날짜 고정하지 않음
 
 fs.writeFileSync(path.join(dir, '.dev.vars'), `TELEGRAM_BOT_TOKEN=${TOK}\nBOT_DRY=1\nBOT_MOCK=1\n`);
 const persist = fs.mkdtempSync(path.join(os.tmpdir(), 'wrangler-'));
@@ -27,7 +28,7 @@ const outbox = async () => (await adm('/api/export')).state?._outbox || [];
   ok((await fetch(`${W}/api/export`)).status === 401, '관리 API 인증');
 
   const cfg = JSON.parse(fs.readFileSync(path.join(dir, '../chart/bot/watchlist.json'), 'utf8'));
-  const imp = await adm('/api/import', { cfg, state: { _chatId: 42, _offset: 99, _alerts: [{ src: 'binance', symbol: 'BTCUSDT', name: '비트코인', op: '<=', price: 50, at: 1 }], _watches: [] }, trip: { spends: [{ id: 'a', at: Date.now(), date: '2026-10-10', city: '출발 전', amount: 30000, cur: 'KRW', rate: 1, krw: 30000, cat: '교통', text: '공항버스', pay: '카드' }] } });
+  const imp = await adm('/api/import', { cfg, state: { _chatId: 42, _offset: 99, _alerts: [{ src: 'binance', symbol: 'BTCUSDT', name: '비트코인', op: '<=', price: 50, at: 1 }], _watches: [] }, trip: { spends: [{ id: 'a', at: Date.now(), date: KST_TODAY, city: '출발 전', amount: 30000, cur: 'KRW', rate: 1, krw: 30000, cat: '교통', text: '공항버스', pay: '카드' }] } });
   ok(imp.imported && imp.alerts === 1 && imp.spends === 1, '데이터 이사', JSON.stringify(imp));
   ok(!(await adm('/api/import', { state: {} })).imported, '이사 중복 방지');
   ok((await adm('/api/export')).state._offset === undefined, '이사 시 getUpdates offset 제거');
@@ -37,7 +38,7 @@ const outbox = async () => (await adm('/api/export')).state?._outbox || [];
   await sleep(500);
   let ob = await outbox();
   ok(ob.length === 7, '웹훅 메시지 7개 처리 (주인 아닌 사람 무시)', `${ob.length}개`);
-  ok(/☁️ 클라우드/.test(ob[0]) && /💹 <b>달러/.test(ob[1]) && /알림 등록: 비트코인 ≤ <b>95/.test(ob[2]) && /🍽️ <b>점심<\/b> €18.00/.test(ob[3]) && /공항버스/.test(ob[4]) && /D-\d+/.test(ob[5]) && /2\. 비트코인/.test(ob[6]), '명령 응답 내용');
+  ok(/☁️ 클라우드/.test(ob[0]) && /💹 <b>달러/.test(ob[1]) && /알림 등록: 비트코인 ≤ <b>95/.test(ob[2]) && /🍽️ <b>점심<\/b> €18.00/.test(ob[3]) && /공항버스/.test(ob[4]) && /D-\d+/.test(ob[5]) && /2\. 비트코인/.test(ob[6]), '명령 응답 내용', JSON.stringify(ob.map(x => String(x).slice(0, 90))));
 
   // 동시에 여러 메시지 → Durable Object가 순서대로 처리해서 하나도 안 잃어야 함
   await Promise.all(['택시 10유로', '커피 3유로', '젤라또 4유로', '기념품 20유로'].map(t => msg(t)));
