@@ -52,7 +52,7 @@ async function waitForMessages(maxSec) {
     const r = await fetch(`https://api.telegram.org/bot${TOKEN}/getUpdates`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ offset, timeout: Math.max(1, Math.floor(maxSec)), allowed_updates: ['message'] }),
-      signal: AbortSignal.timeout((maxSec + 15) * 1000),
+      signal: AbortSignal.timeout(Math.ceil((maxSec + 15) * 1000)), // 소수 ms면 예외 → 반드시 정수
     }).then(r => r.json());
     if (!r.ok) { log('getUpdates 실패', r.description); await sleep(10000); return []; }
     return r.result;
