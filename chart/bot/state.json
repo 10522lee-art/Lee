@@ -2,7 +2,7 @@
  "binance:BTCUSDT:1d": {
   "score": -11,
   "verdict": "중립",
-  "tv": "매도",
+  "tv": "중립",
   "bar": 1792454400,
   "patterns": []
  },
@@ -16,7 +16,7 @@
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -25,
+  "score": -18,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792454400,
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792476423137,
+ "_fullAt": 1792480027442,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 81,662  -11 중립 | TV 매도",
-   "px": 81662.14,
-   "at": 1792476421506
+   "line": "⚪ <b>BTCUSDT</b> 81,800  -11 중립 | TV 중립",
+   "px": 81800,
+   "at": 1792480025721
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,395  -32 매도 | TV 매도",
-   "px": 2395.06,
-   "at": 1792476421661
+   "line": "🔴 <b>ETHUSDT</b> 2,397  -32 매도 | TV 매도",
+   "px": 2396.53,
+   "at": 1792480025876
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,741  -25 매도 | TV 매도",
-   "px": 1741,
-   "at": 1792476422401
+   "line": "🔴 <b>KRW-XRP</b> 1,740  -18 매도 | TV 매도",
+   "px": 1740,
+   "at": 1792480026695
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 210,750  -22 매도 | TV 매도",
-   "px": 210750,
-   "at": 1792476422551
+   "line": "🔴 <b>삼성전자</b> 211,500  -22 매도 | TV 매도",
+   "px": 211500,
+   "at": 1792480026974
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,222,000  -38 매도 | TV 매도",
-   "px": 1222000,
-   "at": 1792476422637
+   "line": "🔴 <b>SK하이닉스</b> 1,223,000  -38 매도 | TV 매도",
+   "px": 1223000,
+   "at": 1792480027157
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 217.09  +3 중립 | TV 중립",
    "px": 217.08999633789062,
-   "at": 1792476422751
+   "at": 1792480027287
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 718.36  +4 중립 | TV 매도",
    "px": 718.3599853515625,
-   "at": 1792476423137
+   "at": 1792480027442
   }
  }
 }
