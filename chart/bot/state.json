@@ -50,11 +50,13 @@
   "patterns": []
  },
  "us:QQQ:1d": {
-  "score": 4,
+  "score": 11,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1792589400,
-  "patterns": []
+  "patterns": [
+   "이중바닥"
+  ]
  },
  "_lastSummary": "2026-10-21",
  "_chatId": 8343442590,
@@ -126,43 +128,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792595223120,
+ "_fullAt": 1792597287580,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🟢 <b>BTCUSDT</b> 84,600  +25 매수 | TV 매수",
-   "px": 84600,
-   "at": 1792595221695
+   "line": "🟢 <b>BTCUSDT</b> 84,609  +25 매수 | TV 매수",
+   "px": 84608.67,
+   "at": 1792597285808
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,506  -20 매도 | TV 매수",
-   "px": 2505.5,
-   "at": 1792595221871
+   "line": "🔴 <b>ETHUSDT</b> 2,512  -20 매도 | TV 매수",
+   "px": 2512.27,
+   "at": 1792597285997
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,836  -29 매도 | TV 매도",
-   "px": 1836,
-   "at": 1792595222639
+   "line": "🔴 <b>KRW-XRP</b> 1,837  -29 매도 | TV 매도",
+   "px": 1837,
+   "at": 1792597287038
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 211,500  -22 매도 | TV 매도",
    "px": 211500,
-   "at": 1792595222814
+   "at": 1792597287193
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,223,000  -38 매도 | TV 매도",
    "px": 1223000,
-   "at": 1792595222892
+   "at": 1792597287310
   },
   "us:NVDA:1d": {
-   "line": "🟢 <b>NVIDIA Corporation</b> 220.24  +15 매수 | TV 중립",
-   "px": 220.24000549316406,
-   "at": 1792595223028
+   "line": "🟢 <b>NVIDIA Corporation</b> 220.48  +15 매수 | TV 중립",
+   "px": 220.47500610351562,
+   "at": 1792597287397
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 723.68  +4 중립 | TV 매도",
-   "px": 723.6799926757812,
-   "at": 1792595223120
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 725.76  +11 중립 | TV 매도",
+   "px": 725.760009765625,
+   "at": 1792597287579
   }
  }
 }
