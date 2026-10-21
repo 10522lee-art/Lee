@@ -16,7 +16,7 @@
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -32,
+  "score": -25,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792540800,
@@ -32,7 +32,7 @@
   ]
  },
  "kr:000660:1d": {
-  "score": -47,
+  "score": -31,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792540800,
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792555627333,
+ "_fullAt": 1792556499569,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 82,776  +3 중립 | TV 매수",
-   "px": 82776.01,
-   "at": 1792555625826
+   "line": "⚪ <b>BTCUSDT</b> 82,822  +3 중립 | TV 매수",
+   "px": 82821.55,
+   "at": 1792556497699
   },
   "binance:ETHUSDT:1d": {
    "line": "🔴 <b>ETHUSDT</b> 2,445  -24 매도 | TV 매도",
-   "px": 2444.57,
-   "at": 1792555625957
+   "px": 2445.04,
+   "at": 1792556497859
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,774  -32 매도 | TV 매도",
-   "px": 1774,
-   "at": 1792555626793
+   "line": "🔴 <b>KRW-XRP</b> 1,773  -25 매도 | TV 매도",
+   "px": 1773,
+   "at": 1792556498882
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 222,750  -34 매도 | TV 매도",
-   "px": 222750,
-   "at": 1792555626965
+   "line": "🔴 <b>삼성전자</b> 221,250  -34 매도 | TV 매도",
+   "px": 221250,
+   "at": 1792556499171
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,284,000  -47 매도 | TV 매도",
-   "px": 1284000,
-   "at": 1792555627089
+   "line": "🔴 <b>SK하이닉스</b> 1,273,000  -31 매도 | TV 매도",
+   "px": 1273000,
+   "at": 1792556499295
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 216.47  +4 중립 | TV 중립",
    "px": 216.47000122070312,
-   "at": 1792555627192
+   "at": 1792556499449
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 717.63  0 중립 | TV 매도",
    "px": 717.6300048828125,
-   "at": 1792555627333
+   "at": 1792556499569
   }
  }
 }
