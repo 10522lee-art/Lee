@@ -1,6 +1,6 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 6,
+  "score": 3,
   "verdict": "중립",
   "tv": "매수",
   "bar": 1792540800,
@@ -32,7 +32,7 @@
   ]
  },
  "kr:000660:1d": {
-  "score": -31,
+  "score": -47,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792540800,
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792559227319,
+ "_fullAt": 1792562826737,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 82,937  +6 중립 | TV 매수",
-   "px": 82936.98,
-   "at": 1792559225621
+   "line": "⚪ <b>BTCUSDT</b> 82,698  +3 중립 | TV 매수",
+   "px": 82697.88,
+   "at": 1792562825304
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,450  -24 매도 | TV 매도",
-   "px": 2450.39,
-   "at": 1792559225781
+   "line": "🔴 <b>ETHUSDT</b> 2,440  -24 매도 | TV 매도",
+   "px": 2439.61,
+   "at": 1792562825462
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,775  -32 매도 | TV 매도",
-   "px": 1775,
-   "at": 1792559226735
+   "line": "🔴 <b>KRW-XRP</b> 1,774  -32 매도 | TV 매도",
+   "px": 1774,
+   "at": 1792562826268
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 221,750  -34 매도 | TV 매도",
-   "px": 221750,
-   "at": 1792559226941
+   "line": "🔴 <b>삼성전자</b> 221,500  -34 매도 | TV 매도",
+   "px": 221500,
+   "at": 1792562826452
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,274,000  -31 매도 | TV 매도",
-   "px": 1274000,
-   "at": 1792559227046
+   "line": "🔴 <b>SK하이닉스</b> 1,286,000  -47 매도 | TV 매도",
+   "px": 1286000,
+   "at": 1792562826542
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 216.47  +4 중립 | TV 중립",
    "px": 216.47000122070312,
-   "at": 1792559227209
+   "at": 1792562826643
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 717.63  0 중립 | TV 매도",
    "px": 717.6300048828125,
-   "at": 1792559227319
+   "at": 1792562826737
   }
  }
 }
