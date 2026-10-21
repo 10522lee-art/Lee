@@ -23,7 +23,7 @@
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -30,
+  "score": -24,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792540800,
@@ -41,17 +41,17 @@
   ]
  },
  "us:NVDA:1d": {
-  "score": 3,
+  "score": 4,
   "verdict": "중립",
   "tv": "중립",
-  "bar": 1792416600,
+  "bar": 1792503000,
   "patterns": []
  },
  "us:QQQ:1d": {
-  "score": 4,
+  "score": 0,
   "verdict": "중립",
   "tv": "매도",
-  "bar": 1792416600,
+  "bar": 1792503000,
   "patterns": []
  },
  "_lastSummary": "2026-10-21",
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792544823226,
+ "_fullAt": 1792548427348,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 82,913  +6 중립 | TV 매수",
-   "px": 82912.71,
-   "at": 1792544821855
+   "line": "⚪ <b>BTCUSDT</b> 82,957  +6 중립 | TV 매수",
+   "px": 82956.57,
+   "at": 1792548425493
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,449  -24 매도 | TV 매도",
-   "px": 2448.92,
-   "at": 1792544821987
+   "line": "🔴 <b>ETHUSDT</b> 2,454  -24 매도 | TV 매도",
+   "px": 2453.6,
+   "at": 1792548425625
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,777  -32 매도 | TV 매도",
-   "px": 1777,
-   "at": 1792544822595
+   "line": "🔴 <b>KRW-XRP</b> 1,779  -32 매도 | TV 매도",
+   "px": 1779,
+   "at": 1792548426737
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 223,000  -30 매도 | TV 매도",
-   "px": 223000,
-   "at": 1792544822787
+   "line": "🔴 <b>삼성전자</b> 226,500  -24 매도 | TV 매도",
+   "px": 226500,
+   "at": 1792548426919
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,307,000  -47 매도 | TV 매도",
-   "px": 1307000,
-   "at": 1792544822897
+   "line": "🔴 <b>SK하이닉스</b> 1,311,000  -47 매도 | TV 매도",
+   "px": 1311000,
+   "at": 1792548427025
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 217.09  +3 중립 | TV 중립",
-   "px": 217.08999633789062,
-   "at": 1792544822999
+   "line": "⚪ <b>NVIDIA Corporation</b> 216.47  +4 중립 | TV 중립",
+   "px": 216.47000122070312,
+   "at": 1792548427221
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 718.36  +4 중립 | TV 매도",
-   "px": 718.3599853515625,
-   "at": 1792544823226
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 717.63  0 중립 | TV 매도",
+   "px": 717.6300048828125,
+   "at": 1792548427348
   }
  }
 }
