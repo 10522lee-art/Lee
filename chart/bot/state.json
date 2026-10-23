@@ -16,7 +16,7 @@
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -44,
+  "score": -30,
   "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1792713600,
@@ -43,7 +43,7 @@
  "us:NVDA:1d": {
   "score": -13,
   "verdict": "중립",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1792762200,
   "patterns": []
  },
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792782427057,
+ "_fullAt": 1792786023092,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 81,412  -14 중립 | TV 매도",
-   "px": 81412,
-   "at": 1792782425801
+   "line": "⚪ <b>BTCUSDT</b> 81,271  -14 중립 | TV 매도",
+   "px": 81271.25,
+   "at": 1792786021927
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,399  -32 매도 | TV 매도",
-   "px": 2399.27,
-   "at": 1792782425933
+   "line": "🔴 <b>ETHUSDT</b> 2,393  -32 매도 | TV 매도",
+   "px": 2393.36,
+   "at": 1792786022057
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,747  -44 매도 | TV 적극 매도",
-   "px": 1747,
-   "at": 1792782426529
+   "line": "🔴 <b>KRW-XRP</b> 1,744  -30 매도 | TV 적극 매도",
+   "px": 1744,
+   "at": 1792786022671
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 215,500  -28 매도 | TV 매도",
    "px": 215500,
-   "at": 1792782426692
+   "at": 1792786022776
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,277,000  -39 매도 | TV 매도",
    "px": 1277000,
-   "at": 1792782426847
+   "at": 1792786022890
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 211.68  -13 중립 | TV 매도",
-   "px": 211.68499755859375,
-   "at": 1792782426956
+   "line": "⚪ <b>NVIDIA Corporation</b> 210.96  -13 중립 | TV 적극 매도",
+   "px": 210.9600067138672,
+   "at": 1792786022986
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 704.80  -9 중립 | TV 매도",
-   "px": 704.7999877929688,
-   "at": 1792782427057
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 704.40  -9 중립 | TV 매도",
+   "px": 704.4000244140625,
+   "at": 1792786023092
   }
  }
 }
