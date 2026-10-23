@@ -7,7 +7,7 @@
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -24,
+  "score": -27,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792713600,
@@ -41,7 +41,7 @@
   ]
  },
  "us:NVDA:1d": {
-  "score": 0,
+  "score": 7,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1792762200,
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792768022681,
+ "_fullAt": 1792771627703,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 81,627  -14 중립 | TV 매도",
-   "px": 81626.86,
-   "at": 1792768021589
+   "line": "⚪ <b>BTCUSDT</b> 81,716  -14 중립 | TV 매도",
+   "px": 81716,
+   "at": 1792771626266
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,404  -24 매도 | TV 매도",
-   "px": 2404.12,
-   "at": 1792768021713
+   "line": "🔴 <b>ETHUSDT</b> 2,408  -27 매도 | TV 매도",
+   "px": 2408.41,
+   "at": 1792771626390
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,754  -34 매도 | TV 적극 매도",
-   "px": 1754,
-   "at": 1792768022341
+   "line": "🔴 <b>KRW-XRP</b> 1,756  -34 매도 | TV 적극 매도",
+   "px": 1756,
+   "at": 1792771627400
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 214,500  -32 매도 | TV 적극 매도",
    "px": 214500,
-   "at": 1792768022443
+   "at": 1792771627489
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,223,000  -38 매도 | TV 매도",
    "px": 1223000,
-   "at": 1792768022518
+   "at": 1792771627560
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 212.78  0 중립 | TV 매도",
-   "px": 212.7801971435547,
-   "at": 1792768022576
+   "line": "⚪ <b>NVIDIA Corporation</b> 212.75  +7 중립 | TV 매도",
+   "px": 212.75,
+   "at": 1792771627633
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 707.72  -5 중립 | TV 매도",
-   "px": 707.719970703125,
-   "at": 1792768022681
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 708.50  -5 중립 | TV 매도",
+   "px": 708.5,
+   "at": 1792771627703
   }
  }
 }
