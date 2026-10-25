@@ -1,21 +1,18 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -17,
+  "score": -15,
+  "verdict": "매도",
+  "tv": "매도",
+  "bar": 1792886400,
+  "patterns": []
+ },
+ "binance:ETHUSDT:1d": {
+  "score": -32,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1792886400,
   "patterns": [
    "이중천장"
-  ]
- },
- "binance:ETHUSDT:1d": {
-  "score": -38,
-  "verdict": "매도",
-  "tv": "매도",
-  "bar": 1792886400,
-  "patterns": [
-   "이중천장",
-   "헤드앤숄더"
   ]
  },
  "upbit:KRW-XRP:1d": {
@@ -127,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1792890423376,
+ "_fullAt": 1792894023657,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 80,802  -17 매도 | TV 매도",
-   "px": 80802.1,
-   "at": 1792890421707
+   "line": "🔴 <b>BTCUSDT</b> 80,944  -15 매도 | TV 매도",
+   "px": 80944.01,
+   "at": 1792894021841
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,358  -38 매도 | TV 매도",
-   "px": 2357.96,
-   "at": 1792890421849
+   "line": "🔴 <b>ETHUSDT</b> 2,365  -32 매도 | TV 매도",
+   "px": 2365.4,
+   "at": 1792894021984
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,754  -29 매도 | TV 매도",
-   "px": 1754,
-   "at": 1792890422856
+   "line": "🔴 <b>KRW-XRP</b> 1,756  -29 매도 | TV 매도",
+   "px": 1756,
+   "at": 1792894023100
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 215,500  -28 매도 | TV 매도",
    "px": 215500,
-   "at": 1792890423071
+   "at": 1792894023319
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,277,000  -39 매도 | TV 매도",
    "px": 1277000,
-   "at": 1792890423177
+   "at": 1792894023426
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 210.96  -13 중립 | TV 적극 매도",
    "px": 210.9600067138672,
-   "at": 1792890423274
+   "at": 1792894023527
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 704.40  -9 중립 | TV 매도",
    "px": 704.4000244140625,
-   "at": 1792890423376
+   "at": 1792894023657
   }
  }
 }
