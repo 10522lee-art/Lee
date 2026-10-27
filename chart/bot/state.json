@@ -1,6 +1,6 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 2,
+  "score": -6,
   "verdict": "중립",
   "tv": "중립",
   "bar": 1793059200,
@@ -39,8 +39,8 @@
   ]
  },
  "us:NVDA:1d": {
-  "score": 8,
-  "verdict": "중립",
+  "score": 15,
+  "verdict": "매수",
   "tv": "매도",
   "bar": 1793107800,
   "patterns": []
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793128027412,
+ "_fullAt": 1793131623239,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 80,732  +2 중립 | TV 중립",
-   "px": 80732.01,
-   "at": 1793128025538
+   "line": "⚪ <b>BTCUSDT</b> 80,785  -6 중립 | TV 중립",
+   "px": 80785.26,
+   "at": 1793131621730
   },
   "binance:ETHUSDT:1d": {
    "line": "🔴 <b>ETHUSDT</b> 2,348  -22 매도 | TV 매도",
-   "px": 2347.59,
-   "at": 1793128025724
+   "px": 2348.11,
+   "at": 1793131621908
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,766  -25 매도 | TV 매도",
-   "px": 1766,
-   "at": 1793128026846
+   "line": "🔴 <b>KRW-XRP</b> 1,765  -25 매도 | TV 매도",
+   "px": 1765,
+   "at": 1793131622780
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 222,000  -34 매도 | TV 매도",
    "px": 222000,
-   "at": 1793128027024
+   "at": 1793131622922
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,341,000  -39 매도 | TV 매도",
    "px": 1341000,
-   "at": 1793128027147
+   "at": 1793131623024
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 217.86  +8 중립 | TV 매도",
-   "px": 217.86000061035156,
-   "at": 1793128027251
+   "line": "🟢 <b>NVIDIA Corporation</b> 217.94  +15 매수 | TV 매도",
+   "px": 217.94000244140625,
+   "at": 1793131623133
   },
   "us:QQQ:1d": {
-   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 721.44  -1 중립 | TV 중립",
-   "px": 721.4400024414062,
-   "at": 1793128027412
+   "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 721.25  -1 중립 | TV 중립",
+   "px": 721.25,
+   "at": 1793131623239
   }
  }
 }
