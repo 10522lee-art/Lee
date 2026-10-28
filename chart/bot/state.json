@@ -1,6 +1,6 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 8,
+  "score": 6,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1793145600,
@@ -14,7 +14,7 @@
   "patterns": []
  },
  "upbit:KRW-XRP:1d": {
-  "score": 10,
+  "score": 6,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1793145600,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793160423374,
+ "_fullAt": 1793164026669,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 81,046  +8 중립 | TV 매도",
-   "px": 81046.01,
-   "at": 1793160421839
+   "line": "⚪ <b>BTCUSDT</b> 80,916  +6 중립 | TV 매도",
+   "px": 80916.01,
+   "at": 1793164025158
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,358  -22 매도 | TV 매도",
-   "px": 2357.8,
-   "at": 1793160422028
+   "line": "🔴 <b>ETHUSDT</b> 2,353  -22 매도 | TV 매도",
+   "px": 2352.91,
+   "at": 1793164025348
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,793  +10 중립 | TV 매도",
-   "px": 1793,
-   "at": 1793160422983
+   "line": "⚪ <b>KRW-XRP</b> 1,784  +6 중립 | TV 매도",
+   "px": 1784,
+   "at": 1793164026309
   },
   "kr:005930:1d": {
-   "line": "⚪ <b>삼성전자</b> 242,500  -11 중립 | TV 매수",
-   "px": 242500,
-   "at": 1793160423124
+   "line": "⚪ <b>삼성전자</b> 241,250  -11 중립 | TV 매수",
+   "px": 241250,
+   "at": 1793164026416
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,483,000  -34 매도 | TV 중립",
-   "px": 1483000,
-   "at": 1793160423207
+   "line": "🔴 <b>SK하이닉스</b> 1,472,000  -34 매도 | TV 중립",
+   "px": 1472000,
+   "at": 1793164026502
   },
   "us:NVDA:1d": {
    "line": "🟢 <b>NVIDIA Corporation</b> 217.94  +15 매수 | TV 매도",
    "px": 217.94000244140625,
-   "at": 1793160423289
+   "at": 1793164026585
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 721.25  -1 중립 | TV 중립",
    "px": 721.25,
-   "at": 1793160423374
+   "at": 1793164026669
   }
  }
 }
