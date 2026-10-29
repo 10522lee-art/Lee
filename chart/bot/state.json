@@ -1,6 +1,6 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": 2,
+  "score": -2,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1793232000,
@@ -21,7 +21,7 @@
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -17,
+  "score": -19,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1793232000,
@@ -124,43 +124,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793250426413,
+ "_fullAt": 1793254027080,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 80,357  +2 중립 | TV 매도",
-   "px": 80356.6,
-   "at": 1793250424694
+   "line": "⚪ <b>BTCUSDT</b> 80,236  -2 중립 | TV 매도",
+   "px": 80236,
+   "at": 1793254025701
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,328  -29 매도 | TV 적극 매도",
-   "px": 2328.1,
-   "at": 1793250424846
+   "line": "🔴 <b>ETHUSDT</b> 2,323  -29 매도 | TV 적극 매도",
+   "px": 2322.94,
+   "at": 1793254025854
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,743  +6 중립 | TV 매도",
-   "px": 1743,
-   "at": 1793250426028
+   "line": "⚪ <b>KRW-XRP</b> 1,742  +6 중립 | TV 매도",
+   "px": 1742,
+   "at": 1793254026677
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 230,000  -17 매도 | TV 매도",
-   "px": 230000,
-   "at": 1793250426155
+   "line": "🔴 <b>삼성전자</b> 232,500  -19 매도 | TV 매도",
+   "px": 232500,
+   "at": 1793254026813
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,531,000  -24 매도 | TV 매수",
-   "px": 1531000,
-   "at": 1793250426264
+   "line": "🔴 <b>SK하이닉스</b> 1,544,000  -24 매도 | TV 매수",
+   "px": 1544000,
+   "at": 1793254026914
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 215.38  0 중립 | TV 매도",
    "px": 215.3800048828125,
-   "at": 1793250426337
+   "at": 1793254026997
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 725.61  +8 중립 | TV 매수",
    "px": 725.6099853515625,
-   "at": 1793250426412
+   "at": 1793254027080
   }
  }
 }
