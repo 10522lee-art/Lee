@@ -7,8 +7,8 @@
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -9,
-  "verdict": "중립",
+  "score": -25,
+  "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1793318400,
   "patterns": []
@@ -21,7 +21,7 @@
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -29,
+  "score": -25,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1793318400,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793340422717,
+ "_fullAt": 1793344023271,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 78,599  -10 중립 | TV 매도",
-   "px": 78598.55,
-   "at": 1793340421608
+   "line": "⚪ <b>BTCUSDT</b> 78,550  -10 중립 | TV 매도",
+   "px": 78550.01,
+   "at": 1793344021699
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,241  -9 중립 | TV 적극 매도",
-   "px": 2241.3,
-   "at": 1793340421741
+   "line": "🔴 <b>ETHUSDT</b> 2,253  -25 매도 | TV 적극 매도",
+   "px": 2253.23,
+   "at": 1793344021831
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,691  -25 매도 | TV 적극 매도",
-   "px": 1691,
-   "at": 1793340422361
+   "line": "🔴 <b>KRW-XRP</b> 1,699  -25 매도 | TV 적극 매도",
+   "px": 1699,
+   "at": 1793344022865
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 222,000  -29 매도 | TV 매도",
-   "px": 222000,
-   "at": 1793340422452
+   "line": "🔴 <b>삼성전자</b> 225,000  -25 매도 | TV 매도",
+   "px": 225000,
+   "at": 1793344022953
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,411,000  -30 매도 | TV 매도",
-   "px": 1411000,
-   "at": 1793340422562
+   "line": "🔴 <b>SK하이닉스</b> 1,418,000  -30 매도 | TV 매도",
+   "px": 1418000,
+   "at": 1793344023037
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 213.66  0 중립 | TV 매도",
    "px": 213.66000366210938,
-   "at": 1793340422635
+   "at": 1793344023183
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 715.34  -5 중립 | TV 매도",
    "px": 715.3400268554688,
-   "at": 1793340422717
+   "at": 1793344023271
   }
  }
 }
