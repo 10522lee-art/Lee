@@ -14,7 +14,7 @@
   "patterns": []
  },
  "upbit:KRW-XRP:1d": {
-  "score": -27,
+  "score": -25,
   "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1793318400,
@@ -48,7 +48,7 @@
  "us:QQQ:1d": {
   "score": -34,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1793367000,
   "patterns": []
  },
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793369223266,
+ "_fullAt": 1793372165461,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 77,078  -6 중립 | TV 매도",
-   "px": 77078.45,
-   "at": 1793369221670
+   "line": "⚪ <b>BTCUSDT</b> 77,230  -6 중립 | TV 매도",
+   "px": 77230,
+   "at": 1793372163620
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,225  -9 중립 | TV 적극 매도",
-   "px": 2225.49,
-   "at": 1793369221853
+   "line": "⚪ <b>ETHUSDT</b> 2,236  -9 중립 | TV 적극 매도",
+   "px": 2236.48,
+   "at": 1793372163774
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,667  -27 매도 | TV 적극 매도",
-   "px": 1667,
-   "at": 1793369222854
+   "line": "🔴 <b>KRW-XRP</b> 1,674  -25 매도 | TV 적극 매도",
+   "px": 1674,
+   "at": 1793372164624
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 225,000  -25 매도 | TV 매도",
    "px": 225000,
-   "at": 1793369222961
+   "at": 1793372164945
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,418,000  -30 매도 | TV 매도",
    "px": 1418000,
-   "at": 1793369223065
+   "at": 1793372165086
   },
   "us:NVDA:1d": {
-   "line": "🔴 <b>NVIDIA Corporation</b> 207.71  -30 매도 | TV 매도",
-   "px": 207.7050018310547,
-   "at": 1793369223158
+   "line": "🔴 <b>NVIDIA Corporation</b> 206.72  -30 매도 | TV 매도",
+   "px": 206.72000122070312,
+   "at": 1793372165242
   },
   "us:QQQ:1d": {
-   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 697.28  -34 매도 | TV 매도",
-   "px": 697.280029296875,
-   "at": 1793369223262
+   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 696.31  -34 매도 | TV 적극 매도",
+   "px": 696.3099975585938,
+   "at": 1793372165461
   }
  }
 }
