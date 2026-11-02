@@ -14,7 +14,7 @@
   "patterns": []
  },
  "upbit:KRW-XRP:1d": {
-  "score": -7,
+  "score": -13,
   "verdict": "중립",
   "tv": "매도",
   "bar": 1793577600,
@@ -41,7 +41,7 @@
  "us:NVDA:1d": {
   "score": -26,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1793629800,
   "patterns": []
  },
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793646423417,
+ "_fullAt": 1793650023620,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 76,924  -11 중립 | TV 매도",
-   "px": 76923.75,
-   "at": 1793646421844
+   "line": "⚪ <b>BTCUSDT</b> 76,966  -11 중립 | TV 매도",
+   "px": 76966.01,
+   "at": 1793650021846
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,249  -22 매도 | TV 매도",
-   "px": 2248.82,
-   "at": 1793646421984
+   "line": "🔴 <b>ETHUSDT</b> 2,255  -22 매도 | TV 매도",
+   "px": 2255.46,
+   "at": 1793650021987
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,675  -7 중립 | TV 매도",
-   "px": 1675,
-   "at": 1793646422887
+   "line": "⚪ <b>KRW-XRP</b> 1,690  -13 중립 | TV 매도",
+   "px": 1690,
+   "at": 1793650023031
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 225,000  -25 매도 | TV 매도",
    "px": 225000,
-   "at": 1793646423073
+   "at": 1793650023274
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,418,000  -30 매도 | TV 매도",
    "px": 1418000,
-   "at": 1793646423184
+   "at": 1793650023384
   },
   "us:NVDA:1d": {
-   "line": "🔴 <b>NVIDIA Corporation</b> 204.97  -26 매도 | TV 매도",
-   "px": 204.97000122070312,
-   "at": 1793646423308
+   "line": "🔴 <b>NVIDIA Corporation</b> 204.15  -26 매도 | TV 적극 매도",
+   "px": 204.15499877929688,
+   "at": 1793650023514
   },
   "us:QQQ:1d": {
-   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 687.54  -18 매도 | TV 매도",
-   "px": 687.5399780273438,
-   "at": 1793646423417
+   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 685.85  -18 매도 | TV 매도",
+   "px": 685.8499755859375,
+   "at": 1793650023620
   }
  }
 }
