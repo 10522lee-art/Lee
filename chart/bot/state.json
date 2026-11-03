@@ -7,7 +7,7 @@
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -22,
+  "score": -31,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1793664000,
@@ -30,7 +30,7 @@
   ]
  },
  "kr:000660:1d": {
-  "score": -45,
+  "score": -41,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1793664000,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793678042509,
+ "_fullAt": 1793678823124,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 76,942  -11 중립 | TV 매도",
-   "px": 76942.04,
-   "at": 1793678041084
+   "line": "⚪ <b>BTCUSDT</b> 76,803  -11 중립 | TV 매도",
+   "px": 76803.17,
+   "at": 1793678821995
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,253  -22 매도 | TV 매도",
-   "px": 2253.08,
-   "at": 1793678041215
+   "line": "🔴 <b>ETHUSDT</b> 2,250  -31 매도 | TV 매도",
+   "px": 2249.61,
+   "at": 1793678822127
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,683  -34 매도 | TV 적극 매도",
-   "px": 1683,
-   "at": 1793678042059
+   "line": "🔴 <b>KRW-XRP</b> 1,681  -34 매도 | TV 적극 매도",
+   "px": 1681,
+   "at": 1793678822746
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 219,750  -51 강력 매도 | TV 매도",
-   "px": 219750,
-   "at": 1793678042177
+   "line": "🔴 <b>삼성전자</b> 220,500  -51 강력 매도 | TV 매도",
+   "px": 220500,
+   "at": 1793678822859
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,398,000  -45 매도 | TV 매도",
-   "px": 1398000,
-   "at": 1793678042268
+   "line": "🔴 <b>SK하이닉스</b> 1,403,000  -41 매도 | TV 매도",
+   "px": 1403000,
+   "at": 1793678822944
   },
   "us:NVDA:1d": {
    "line": "🔴 <b>NVIDIA Corporation</b> 202.06  -26 매도 | TV 적극 매도",
    "px": 202.05999755859375,
-   "at": 1793678042343
+   "at": 1793678823018
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 681.09  -13 중립 | TV 적극 매도",
    "px": 681.0900268554688,
-   "at": 1793678042509
+   "at": 1793678823124
   }
  }
 }
