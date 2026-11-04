@@ -1,15 +1,15 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -11,
-  "verdict": "중립",
-  "tv": "매도",
+  "score": -15,
+  "verdict": "매도",
+  "tv": "적극 매도",
   "bar": 1793750400,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -22,
+  "score": -31,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1793750400,
   "patterns": []
  },
@@ -21,8 +21,8 @@
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -51,
-  "verdict": "강력 매도",
+  "score": -40,
+  "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1793750400,
   "patterns": [
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793759611574,
+ "_fullAt": 1793761627187,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 76,767  -11 중립 | TV 매도",
-   "px": 76766.58,
-   "at": 1793759610449
+   "line": "🔴 <b>BTCUSDT</b> 75,919  -15 매도 | TV 적극 매도",
+   "px": 75918.7,
+   "at": 1793761625502
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,257  -22 매도 | TV 매도",
-   "px": 2257.4,
-   "at": 1793759610571
+   "line": "🔴 <b>ETHUSDT</b> 2,233  -31 매도 | TV 적극 매도",
+   "px": 2233.32,
+   "at": 1793761625624
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,686  -13 중립 | TV 매도",
-   "px": 1686,
-   "at": 1793759611233
+   "line": "⚪ <b>KRW-XRP</b> 1,681  -13 중립 | TV 매도",
+   "px": 1681,
+   "at": 1793761626770
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 215,500  -51 강력 매도 | TV 적극 매도",
-   "px": 215500,
-   "at": 1793759611335
+   "line": "🔴 <b>삼성전자</b> 211,250  -40 매도 | TV 적극 매도",
+   "px": 211250,
+   "at": 1793761626987
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,357,000  -45 매도 | TV 매도",
-   "px": 1357000,
-   "at": 1793759611407
+   "line": "🔴 <b>SK하이닉스</b> 1,323,000  -45 매도 | TV 매도",
+   "px": 1323000,
+   "at": 1793761627054
   },
   "us:NVDA:1d": {
    "line": "🔴 <b>NVIDIA Corporation</b> 206.69  -29 매도 | TV 매도",
    "px": 206.69000244140625,
-   "at": 1793759611503
+   "at": 1793761627116
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 685.28  -29 매도 | TV 매도",
    "px": 685.280029296875,
-   "at": 1793759611574
+   "at": 1793761627187
   }
  }
 }
