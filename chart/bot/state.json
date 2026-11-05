@@ -16,12 +16,12 @@
  "upbit:KRW-XRP:1d": {
   "score": 14,
   "verdict": "중립",
-  "tv": "매도",
+  "tv": "중립",
   "bar": 1793836800,
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -50,
+  "score": -62,
   "verdict": "강력 매도",
   "tv": "적극 매도",
   "bar": 1793836800,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793841177136,
+ "_fullAt": 1793844422815,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 80,532  +13 중립 | TV 매수",
-   "px": 80532.49,
-   "at": 1793841175460
+   "line": "⚪ <b>BTCUSDT</b> 80,830  +13 중립 | TV 매수",
+   "px": 80830.01,
+   "at": 1793844421782
   },
   "binance:ETHUSDT:1d": {
-   "line": "🟢 <b>ETHUSDT</b> 2,420  +15 매수 | TV 매수",
-   "px": 2419.6,
-   "at": 1793841175583
+   "line": "🟢 <b>ETHUSDT</b> 2,434  +15 매수 | TV 매수",
+   "px": 2434,
+   "at": 1793844421905
   },
   "upbit:KRW-XRP:1d": {
-   "line": "⚪ <b>KRW-XRP</b> 1,752  +14 중립 | TV 매도",
-   "px": 1752,
-   "at": 1793841176833
+   "line": "⚪ <b>KRW-XRP</b> 1,762  +14 중립 | TV 중립",
+   "px": 1762,
+   "at": 1793844422524
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 206,500  -50 강력 매도 | TV 적극 매도",
-   "px": 206500,
-   "at": 1793841176927
+   "line": "🔴 <b>삼성전자</b> 206,250  -62 강력 매도 | TV 적극 매도",
+   "px": 206250,
+   "at": 1793844422613
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,291,000  -45 매도 | TV 적극 매도",
-   "px": 1291000,
-   "at": 1793841176994
+   "line": "🔴 <b>SK하이닉스</b> 1,296,000  -45 매도 | TV 적극 매도",
+   "px": 1296000,
+   "at": 1793844422685
   },
   "us:NVDA:1d": {
    "line": "🔴 <b>NVIDIA Corporation</b> 206.69  -29 매도 | TV 매도",
    "px": 206.69000244140625,
-   "at": 1793841177068
+   "at": 1793844422744
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 685.28  -29 매도 | TV 매도",
    "px": 685.280029296875,
-   "at": 1793841177136
+   "at": 1793844422815
   }
  }
 }
