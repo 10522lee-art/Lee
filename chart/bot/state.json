@@ -14,14 +14,14 @@
   "patterns": []
  },
  "upbit:KRW-XRP:1d": {
-  "score": -36,
+  "score": -23,
   "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1793923200,
   "patterns": []
  },
  "kr:005930:1d": {
-  "score": -41,
+  "score": -39,
   "verdict": "매도",
   "tv": "적극 매도",
   "bar": 1793923200,
@@ -118,43 +118,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1793938026795,
+ "_fullAt": 1793941627087,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 75,788  -30 매도 | TV 적극 매도",
-   "px": 75788.01,
-   "at": 1793938025702
+   "line": "🔴 <b>BTCUSDT</b> 75,623  -30 매도 | TV 적극 매도",
+   "px": 75623.48,
+   "at": 1793941626054
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,232  -9 중립 | TV 매도",
-   "px": 2231.69,
-   "at": 1793938025825
+   "line": "⚪ <b>ETHUSDT</b> 2,228  -9 중립 | TV 매도",
+   "px": 2227.64,
+   "at": 1793941626177
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,637  -36 매도 | TV 적극 매도",
-   "px": 1637,
-   "at": 1793938026481
+   "line": "🔴 <b>KRW-XRP</b> 1,630  -23 매도 | TV 적극 매도",
+   "px": 1630,
+   "at": 1793941626788
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 189,900  -41 매도 | TV 적극 매도",
-   "px": 189900,
-   "at": 1793938026586
+   "line": "🔴 <b>삼성전자</b> 188,500  -39 매도 | TV 적극 매도",
+   "px": 188500,
+   "at": 1793941626884
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,159,000  -47 매도 | TV 적극 매도",
-   "px": 1159000,
-   "at": 1793938026659
+   "line": "🔴 <b>SK하이닉스</b> 1,144,000  -47 매도 | TV 적극 매도",
+   "px": 1144000,
+   "at": 1793941626956
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 181.60  -13 중립 | TV 적극 매도",
    "px": 181.60000610351562,
-   "at": 1793938026718
+   "at": 1793941627019
   },
   "us:QQQ:1d": {
    "line": "⚪ <b>Invesco QQQ Trust, Series 1</b> 647.05  -13 중립 | TV 적극 매도",
    "px": 647.0499877929688,
-   "at": 1793938026795
+   "at": 1793941627087
   }
  }
 }
