@@ -1,22 +1,22 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -18,
+  "score": -22,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794096000,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -9,
-  "verdict": "중립",
-  "tv": "매도",
+  "score": -29,
+  "verdict": "매도",
+  "tv": "적극 매도",
   "bar": 1794096000,
   "patterns": []
  },
  "upbit:KRW-XRP:1d": {
-  "score": -21,
+  "score": -24,
   "verdict": "매도",
-  "tv": "매도",
+  "tv": "적극 매도",
   "bar": 1794096000,
   "patterns": [
    "이중천장"
@@ -120,43 +120,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1794172023575,
+ "_fullAt": 1794175627490,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 75,716  -18 매도 | TV 매도",
-   "px": 75716.01,
-   "at": 1794172021755
+   "line": "🔴 <b>BTCUSDT</b> 74,134  -22 매도 | TV 매도",
+   "px": 74133.59,
+   "at": 1794175625593
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 2,226  -9 중립 | TV 매도",
-   "px": 2226.1,
-   "at": 1794172021910
+   "line": "🔴 <b>ETHUSDT</b> 2,106  -29 매도 | TV 적극 매도",
+   "px": 2106.3,
+   "at": 1794175625747
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,579  -21 매도 | TV 매도",
-   "px": 1579,
-   "at": 1794172023068
+   "line": "🔴 <b>KRW-XRP</b> 1,528  -24 매도 | TV 적극 매도",
+   "px": 1528,
+   "at": 1794175626904
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 188,700  -35 매도 | TV 적극 매도",
    "px": 188700,
-   "at": 1794172023255
+   "at": 1794175627127
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,132,000  -43 매도 | TV 적극 매도",
    "px": 1132000,
-   "at": 1794172023387
+   "at": 1794175627279
   },
   "us:NVDA:1d": {
    "line": "🔴 <b>NVIDIA Corporation</b> 186.64  -29 매도 | TV 매도",
    "px": 186.63999938964844,
-   "at": 1794172023480
+   "at": 1794175627371
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 656.10  -20 매도 | TV 매도",
    "px": 656.0999755859375,
-   "at": 1794172023575
+   "at": 1794175627490
   }
  }
 }
