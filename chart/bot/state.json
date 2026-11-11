@@ -1,15 +1,15 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -22,
+  "score": -18,
   "verdict": "매도",
-  "tv": "적극 매도",
+  "tv": "매도",
   "bar": 1794355200,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -19,
+  "score": -35,
   "verdict": "매도",
-  "tv": "적극 매도",
+  "tv": "매도",
   "bar": 1794355200,
   "patterns": []
  },
@@ -120,43 +120,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1794362823570,
+ "_fullAt": 1794366422947,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 73,510  -22 매도 | TV 적극 매도",
-   "px": 73509.54,
-   "at": 1794362821799
+   "line": "🔴 <b>BTCUSDT</b> 73,762  -18 매도 | TV 매도",
+   "px": 73761.91,
+   "at": 1794366421466
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 2,053  -19 매도 | TV 적극 매도",
-   "px": 2052.75,
-   "at": 1794362821985
+   "line": "🔴 <b>ETHUSDT</b> 2,063  -35 매도 | TV 매도",
+   "px": 2063.41,
+   "at": 1794366421651
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,426  -27 매도 | TV 매도",
-   "px": 1426,
-   "at": 1794362823151
+   "line": "🔴 <b>KRW-XRP</b> 1,434  -27 매도 | TV 매도",
+   "px": 1434,
+   "at": 1794366422567
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 202,250  -32 매도 | TV 적극 매도",
-   "px": 202250,
-   "at": 1794362823268
+   "line": "🔴 <b>삼성전자</b> 203,500  -32 매도 | TV 적극 매도",
+   "px": 203500,
+   "at": 1794366422661
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,249,000  -19 매도 | TV 적극 매도",
-   "px": 1249000,
-   "at": 1794362823377
+   "line": "🔴 <b>SK하이닉스</b> 1,252,000  -19 매도 | TV 적극 매도",
+   "px": 1252000,
+   "at": 1794366422760
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 168.89  -10 중립 | TV 적극 매도",
    "px": 168.88999938964844,
-   "at": 1794362823480
+   "at": 1794366422851
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 674.76  -25 매도 | TV 적극 매도",
    "px": 674.760009765625,
-   "at": 1794362823570
+   "at": 1794366422947
   }
  }
 }
