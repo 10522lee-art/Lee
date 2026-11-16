@@ -1,25 +1,25 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -15,
+  "score": -20,
   "verdict": "매도",
   "tv": "매도",
-  "bar": 1794700800,
+  "bar": 1794787200,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -21,
+  "score": -17,
   "verdict": "매도",
   "tv": "매도",
-  "bar": 1794700800,
+  "bar": 1794787200,
   "patterns": [
    "이중천장"
   ]
  },
  "upbit:KRW-XRP:1d": {
-  "score": -29,
+  "score": -32,
   "verdict": "매도",
   "tv": "매도",
-  "bar": 1794700800,
+  "bar": 1794787200,
   "patterns": [
    "이중천장"
   ]
@@ -52,7 +52,7 @@
   "bar": 1794580200,
   "patterns": []
  },
- "_lastSummary": "2026-11-15",
+ "_lastSummary": "2026-11-16",
  "_chatId": 8343442590,
  "_paper": {
   "trades": [
@@ -109,9 +109,9 @@
   ],
   "positions": {},
   "lastBar": {
-   "binance:BTCUSDT:1d": 1794614400,
-   "binance:ETHUSDT:1d": 1794614400,
-   "upbit:KRW-XRP:1d": 1794614400,
+   "binance:BTCUSDT:1d": 1794700800,
+   "binance:ETHUSDT:1d": 1794700800,
+   "upbit:KRW-XRP:1d": 1794700800,
    "kr:005930:1d": 1794528000,
    "kr:000660:1d": 1794528000,
    "us:NVDA:1d": 1794580200,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1794784023167,
+ "_fullAt": 1794787622893,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 65,302  -15 매도 | TV 매도",
-   "px": 65302.01,
-   "at": 1794784021688
+   "line": "🔴 <b>BTCUSDT</b> 65,232  -20 매도 | TV 매도",
+   "px": 65231.79,
+   "at": 1794787621673
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 1,833  -21 매도 | TV 매도",
-   "px": 1832.94,
-   "at": 1794784021820
+   "line": "🔴 <b>ETHUSDT</b> 1,833  -17 매도 | TV 매도",
+   "px": 1833.18,
+   "at": 1794787621810
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,345  -29 매도 | TV 매도",
-   "px": 1345,
-   "at": 1794784022803
+   "line": "🔴 <b>KRW-XRP</b> 1,338  -32 매도 | TV 매도",
+   "px": 1338,
+   "at": 1794787622443
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 206,000  -22 매도 | TV 매도",
    "px": 206000,
-   "at": 1794784022895
+   "at": 1794787622546
   },
   "kr:000660:1d": {
    "line": "⚪ <b>SK하이닉스</b> 1,216,000  -14 중립 | TV 매도",
    "px": 1216000,
-   "at": 1794784022979
+   "at": 1794787622711
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 162.85  -11 중립 | TV 매도",
    "px": 162.85000610351562,
-   "at": 1794784023081
+   "at": 1794787622787
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 679.89  -38 매도 | TV 매도",
    "px": 679.8900146484375,
-   "at": 1794784023167
+   "at": 1794787622893
   }
  }
 }
