@@ -1,13 +1,13 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -16,
+  "score": -20,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794787200,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -29,
+  "score": -21,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794787200,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1794845227273,
+ "_fullAt": 1794848826650,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 64,339  -16 매도 | TV 매도",
-   "px": 64338.83,
-   "at": 1794845225560
+   "line": "🔴 <b>BTCUSDT</b> 64,888  -20 매도 | TV 매도",
+   "px": 64888.21,
+   "at": 1794848825141
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 1,816  -29 매도 | TV 매도",
-   "px": 1816.46,
-   "at": 1794845225745
+   "line": "🔴 <b>ETHUSDT</b> 1,826  -21 매도 | TV 매도",
+   "px": 1825.8,
+   "at": 1794848825327
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,298  -32 매도 | TV 매도",
-   "px": 1298,
-   "at": 1794845226805
+   "line": "🔴 <b>KRW-XRP</b> 1,312  -32 매도 | TV 매도",
+   "px": 1312,
+   "at": 1794848826139
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 206,000  -22 매도 | TV 매도",
    "px": 206000,
-   "at": 1794845226942
+   "at": 1794848826321
   },
   "kr:000660:1d": {
    "line": "⚪ <b>SK하이닉스</b> 1,216,000  -14 중립 | TV 매도",
    "px": 1216000,
-   "at": 1794845227032
+   "at": 1794848826455
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 159.12  -10 중립 | TV 매도",
-   "px": 159.1199951171875,
-   "at": 1794845227127
+   "line": "⚪ <b>NVIDIA Corporation</b> 158.64  -10 중립 | TV 매도",
+   "px": 158.63999938964844,
+   "at": 1794848826542
   },
   "us:QQQ:1d": {
-   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 668.00  -53 강력 매도 | TV 적극 매도",
-   "px": 668,
-   "at": 1794845227273
+   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 667.53  -53 강력 매도 | TV 적극 매도",
+   "px": 667.530029296875,
+   "at": 1794848826650
   }
  }
 }
