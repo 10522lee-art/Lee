@@ -1,14 +1,14 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -17,
+  "score": -20,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794787200,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -14,
-  "verdict": "중립",
+  "score": -17,
+  "verdict": "매도",
   "tv": "매도",
   "bar": 1794787200,
   "patterns": [
@@ -25,7 +25,7 @@
   ]
  },
  "kr:005930:1d": {
-  "score": -35,
+  "score": -40,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794787200,
@@ -122,43 +122,43 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1794798423204,
+ "_fullAt": 1794799615344,
  "_trip": {},
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 65,136  -17 매도 | TV 매도",
-   "px": 65136,
-   "at": 1794798421634
+   "line": "🔴 <b>BTCUSDT</b> 65,074  -20 매도 | TV 매도",
+   "px": 65074.01,
+   "at": 1794799613869
   },
   "binance:ETHUSDT:1d": {
-   "line": "⚪ <b>ETHUSDT</b> 1,826  -14 중립 | TV 매도",
-   "px": 1825.98,
-   "at": 1794798421769
+   "line": "🔴 <b>ETHUSDT</b> 1,821  -17 매도 | TV 매도",
+   "px": 1821.1,
+   "at": 1794799614002
   },
   "upbit:KRW-XRP:1d": {
    "line": "🔴 <b>KRW-XRP</b> 1,324  -32 매도 | TV 매도",
    "px": 1324,
-   "at": 1794798422726
+   "at": 1794799614658
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 199,600  -35 매도 | TV 매도",
-   "px": 199600,
-   "at": 1794798422840
+   "line": "🔴 <b>삼성전자</b> 198,700  -40 매도 | TV 매도",
+   "px": 198700,
+   "at": 1794799614828
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,152,000  -39 매도 | TV 적극 매도",
-   "px": 1152000,
-   "at": 1794798423012
+   "line": "🔴 <b>SK하이닉스</b> 1,147,000  -39 매도 | TV 적극 매도",
+   "px": 1147000,
+   "at": 1794799615042
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 162.85  -11 중립 | TV 매도",
    "px": 162.85000610351562,
-   "at": 1794798423109
+   "at": 1794799615139
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 679.89  -38 매도 | TV 매도",
    "px": 679.8900146484375,
-   "at": 1794798423204
+   "at": 1794799615344
   }
  }
 }
