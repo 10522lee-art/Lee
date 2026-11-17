@@ -124,7 +124,8 @@
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
  "_fullAt": 1794901582991,
  "_trip": {
-  "evening": "2026-11-17"
+  "evening": "2026-11-17",
+  "morning": "2026-11-17"
  },
  "_rows": {
   "binance:BTCUSDT:1d": {
@@ -162,5 +163,11 @@
    "px": 661.75,
    "at": 1794901582991
   }
+ },
+ "_fx": {
+  "at": 1794902497055,
+  "EUR": 1470.1,
+  "CHF": 1592.48,
+  "USD": 1337.71
  }
 }
