@@ -7,7 +7,7 @@
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -33,
+  "score": -29,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794960000,
@@ -25,17 +25,17 @@
   ]
  },
  "kr:005930:1d": {
-  "score": -39,
+  "score": -35,
   "verdict": "매도",
-  "tv": "적극 매도",
-  "bar": 1794873600,
+  "tv": "매도",
+  "bar": 1794960000,
   "patterns": []
  },
  "kr:000660:1d": {
-  "score": -31,
+  "score": -40,
   "verdict": "매도",
-  "tv": "적극 매도",
-  "bar": 1794873600,
+  "tv": "매도",
+  "bar": 1794960000,
   "patterns": []
  },
  "us:NVDA:1d": {
@@ -122,46 +122,46 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1795036027422,
+ "_fullAt": 1795039626648,
  "_trip": {
   "evening": "2026-11-18",
   "morning": "2026-11-18"
  },
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 62,584  -26 매도 | TV 적극 매도",
-   "px": 62584,
-   "at": 1795036021640
+   "line": "🔴 <b>BTCUSDT</b> 62,411  -26 매도 | TV 적극 매도",
+   "px": 62410.67,
+   "at": 1795039625217
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 1,757  -33 매도 | TV 매도",
-   "px": 1756.94,
-   "at": 1795036021824
+   "line": "🔴 <b>ETHUSDT</b> 1,765  -29 매도 | TV 매도",
+   "px": 1765.43,
+   "at": 1795039625411
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,320  -32 매도 | TV 매도",
-   "px": 1320,
-   "at": 1795036022920
+   "line": "🔴 <b>KRW-XRP</b> 1,316  -32 매도 | TV 매도",
+   "px": 1316,
+   "at": 1795039626272
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 190,300  -39 매도 | TV 적극 매도",
-   "px": 190300,
-   "at": 1795036025689
+   "line": "🔴 <b>삼성전자</b> 194,700  -35 매도 | TV 매도",
+   "px": 194700,
+   "at": 1795039626371
   },
   "kr:000660:1d": {
-   "line": "🔴 <b>SK하이닉스</b> 1,098,000  -31 매도 | TV 적극 매도",
-   "px": 1098000,
-   "at": 1795036026447
+   "line": "🔴 <b>SK하이닉스</b> 1,144,000  -40 매도 | TV 매도",
+   "px": 1144000,
+   "at": 1795039626458
   },
   "us:NVDA:1d": {
    "line": "⚪ <b>NVIDIA Corporation</b> 150.96  -14 중립 | TV 매도",
    "px": 150.9600067138672,
-   "at": 1795036027053
+   "at": 1795039626533
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 659.51  -50 강력 매도 | TV 적극 매도",
    "px": 659.510009765625,
-   "at": 1795036027422
+   "at": 1795039626648
   }
  },
  "_fx": {
