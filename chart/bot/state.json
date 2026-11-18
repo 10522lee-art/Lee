@@ -1,13 +1,13 @@
 {
  "binance:BTCUSDT:1d": {
-  "score": -21,
-  "verdict": "매도",
+  "score": -14,
+  "verdict": "중립",
   "tv": "매도",
   "bar": 1794960000,
   "patterns": []
  },
  "binance:ETHUSDT:1d": {
-  "score": -33,
+  "score": -29,
   "verdict": "매도",
   "tv": "매도",
   "bar": 1794960000,
@@ -122,46 +122,46 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1795021627657,
+ "_fullAt": 1795023953529,
  "_trip": {
   "evening": "2026-11-18",
   "morning": "2026-11-18"
  },
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "🔴 <b>BTCUSDT</b> 62,881  -21 매도 | TV 매도",
-   "px": 62880.87,
-   "at": 1795021625815
+   "line": "⚪ <b>BTCUSDT</b> 63,164  -14 중립 | TV 매도",
+   "px": 63164.01,
+   "at": 1795023951632
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 1,757  -33 매도 | TV 매도",
-   "px": 1757.16,
-   "at": 1795021625999
+   "line": "🔴 <b>ETHUSDT</b> 1,771  -29 매도 | TV 매도",
+   "px": 1771.42,
+   "at": 1795023951817
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,326  -32 매도 | TV 매도",
-   "px": 1326,
-   "at": 1795021627207
+   "line": "🔴 <b>KRW-XRP</b> 1,330  -32 매도 | TV 매도",
+   "px": 1330,
+   "at": 1795023953040
   },
   "kr:005930:1d": {
    "line": "🔴 <b>삼성전자</b> 190,300  -39 매도 | TV 적극 매도",
    "px": 190300,
-   "at": 1795021627320
+   "at": 1795023953152
   },
   "kr:000660:1d": {
    "line": "🔴 <b>SK하이닉스</b> 1,098,000  -31 매도 | TV 적극 매도",
    "px": 1098000,
-   "at": 1795021627428
+   "at": 1795023953281
   },
   "us:NVDA:1d": {
-   "line": "⚪ <b>NVIDIA Corporation</b> 152.35  -14 중립 | TV 매도",
-   "px": 152.35499572753906,
-   "at": 1795021627576
+   "line": "⚪ <b>NVIDIA Corporation</b> 151.92  -14 중립 | TV 매도",
+   "px": 151.9199981689453,
+   "at": 1795023953427
   },
   "us:QQQ:1d": {
-   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 658.08  -50 강력 매도 | TV 적극 매도",
-   "px": 658.0800170898438,
-   "at": 1795021627657
+   "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 658.89  -50 강력 매도 | TV 적극 매도",
+   "px": 658.885009765625,
+   "at": 1795023953529
   }
  },
  "_fx": {
