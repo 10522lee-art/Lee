@@ -54,7 +54,7 @@
    "이중천장"
   ]
  },
- "_lastSummary": "2026-11-26",
+ "_lastSummary": "2026-11-27",
  "_chatId": 8343442590,
  "_paper": {
   "trades": [
@@ -124,52 +124,52 @@
  "_watches": [],
  "_alerts": [],
  "_menu": "help,brief,alert,alerts,unalert,watch,watches,unwatch,weather,city,now,summary,status,list,add,remove,paper,tf,dash,trip,today,spent,undo,check,done,won,budget,export",
- "_fullAt": 1795759622906,
+ "_fullAt": 1795763222989,
  "_trip": {
   "evening": "2026-11-26",
-  "morning": "2026-11-26"
+  "morning": "2026-11-27"
  },
  "_rows": {
   "binance:BTCUSDT:1d": {
-   "line": "⚪ <b>BTCUSDT</b> 61,775  -10 중립 | TV 매도",
-   "px": 61774.85,
-   "at": 1795759621491
+   "line": "⚪ <b>BTCUSDT</b> 61,751  -10 중립 | TV 매도",
+   "px": 61750.7,
+   "at": 1795763221670
   },
   "binance:ETHUSDT:1d": {
-   "line": "🔴 <b>ETHUSDT</b> 1,741  -26 매도 | TV 매도",
-   "px": 1740.98,
-   "at": 1795759621670
+   "line": "🔴 <b>ETHUSDT</b> 1,734  -26 매도 | TV 매도",
+   "px": 1733.94,
+   "at": 1795763221848
   },
   "upbit:KRW-XRP:1d": {
-   "line": "🔴 <b>KRW-XRP</b> 1,313  -15 매도 | TV 매도",
-   "px": 1313,
-   "at": 1795759622498
+   "line": "🔴 <b>KRW-XRP</b> 1,318  -15 매도 | TV 매도",
+   "px": 1318,
+   "at": 1795763222625
   },
   "kr:005930:1d": {
-   "line": "🔴 <b>삼성전자</b> 179,500  -27 매도 | TV 매도",
-   "px": 179500,
-   "at": 1795759622655
+   "line": "🔴 <b>삼성전자</b> 179,100  -27 매도 | TV 매도",
+   "px": 179100,
+   "at": 1795763222728
   },
   "kr:000660:1d": {
-   "line": "⚪ <b>SK하이닉스</b> 1,105,500  -14 중립 | TV 매도",
-   "px": 1105500,
-   "at": 1795759622745
+   "line": "⚪ <b>SK하이닉스</b> 1,110,000  -14 중립 | TV 매도",
+   "px": 1110000,
+   "at": 1795763222817
   },
   "us:NVDA:1d": {
    "line": "🔴 <b>NVIDIA Corporation</b> 149.30  -42 매도 | TV 적극 매도",
    "px": 149.3000030517578,
-   "at": 1795759622818
+   "at": 1795763222904
   },
   "us:QQQ:1d": {
    "line": "🔴 <b>Invesco QQQ Trust, Series 1</b> 633.93  -50 강력 매도 | TV 적극 매도",
    "px": 633.9299926757812,
-   "at": 1795759622906
+   "at": 1795763222989
   }
  },
  "_fx": {
-  "at": 1795676519580,
-  "EUR": 1472,
-  "CHF": 1614.77,
-  "USD": 1342.91
+  "at": 1795762958764,
+  "EUR": 1466.5,
+  "CHF": 1603.45,
+  "USD": 1335.58
  }
 }
